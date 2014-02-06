@@ -1,0 +1,50 @@
+// ----------------- monster HP assign to token function ----------------------- //
+// I've set up token actions on monster character sheets
+// when selecting a freshly-placed token, click the action to roll HP and assign 
+// to bar1 current and max
+// e.g. (using the "Hit Dice" attribute on my default monster template):
+// !HP @{Hit Dice}
+
+function hitPoints(tokenObj,number,faces,bonus) {
+
+    var characterName = tokenObj.get("name");
+    
+    var hitPoints = parseInt(bonus);
+    
+    for (var i = 0; i < number; i++) {
+        var result = randomInteger(faces);
+        hitPoints += result;
+	};
+	
+    tokenObj.set({bar1_value: hitPoints, bar1_max: hitPoints})
+		
+	//output
+	sendChat(characterName, "/w gm " + " has " + hitPoints + " HP.");
+
+};
+
+on("chat:message", function(msg) {
+    if (msg.type == "api" && msg.content.indexOf("!HP ") !== -1) {
+		//parse the input
+        var selected = msg.selected;
+		var Parameters = msg.content.split("!HP ")[1];
+        var d = Parameters.indexOf("d");
+        var plus = Parameters.indexOf("+");
+        var number = Parameters.slice(0,d)[0];
+        var faces = Parameters.slice(d+1,plus);
+        var bonus = Parameters.slice(plus+1);
+		
+		if(!selected) {
+			sendChat("", "/w gm Select token and try again.");
+			return; //quit if nothing selected
+		}; 
+
+        //loop through selected tokens
+        
+		_.each(selected, function(obj) {
+            var tokenObj = getObj("graphic", obj._id);
+            hitPoints(tokenObj,number,faces,bonus);
+		});
+        
+    };
+});
