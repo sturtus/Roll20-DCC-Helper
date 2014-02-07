@@ -29,7 +29,8 @@ function diceChain(characterObj,attributeObjArray,newValue) {
 	attributeObjArray[0].set("current", newDie);
 	
 	//output
-	sendChat("", "/desc " + characterName + " has changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+	sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+	sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
 
 };
 
@@ -44,7 +45,7 @@ on("chat:message", function(msg) {
 		var newValue = Parameters.split("|")[1];
 		
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	

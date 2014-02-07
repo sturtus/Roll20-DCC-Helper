@@ -7,7 +7,8 @@ function attrib(characterObj,attributeObjArray,newValue) {
 		attributeObjArray[0].set("current", newValue);
 		
 		//output
-		sendChat("", "/desc " + characterName + " has changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		sendChat("API", "/w " + characterName + " Changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
 };
 
 on("chat:message", function(msg) {
@@ -19,7 +20,7 @@ on("chat:message", function(msg) {
 		var newValue = Parameters.split("|")[1];
 		
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	

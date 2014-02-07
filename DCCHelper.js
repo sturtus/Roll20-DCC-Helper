@@ -178,7 +178,7 @@
 
 
 function debug(msg,v) {
-	log("--------------------------------------------------------------------------");
+    log("--------------------------------------------------------------------------");
 	log(msg);
 	log("--------------------------------------------------------------------------");
 	for (var i = 0; i < v.length; i++) {
@@ -202,7 +202,7 @@ function removePlus(string) {
 
 //-----------------------------------------------------------------
 
-function getAttributeObjects(characterObj, attributeArray) {
+function getAttributeObjects(characterObj,attributeArray,who) {
 	// can pass array of attribute strings or a single attribute string	along with an associated character
 	// returns those attributes as an object array or returns false if they do not exist on the passed character.
 	
@@ -217,7 +217,7 @@ function getAttributeObjects(characterObj, attributeArray) {
 		for (var i = 0; i < attributeArray.length; i++) {
 			attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
 			if (attributeObjArray[i] == undefined) {
-				sendChat("", "/desc Selected character requires attribute: " + attributeArray[i] + " ");
+				sendChat("API","/w " + who + " Selected character requires attribute: " + attributeArray[i] + " ");
 			};
 		};		
 	};
@@ -230,7 +230,9 @@ function getAttributeObjects(characterObj, attributeArray) {
 	for (var i = 0; i < attributeArray.length; i++) {
 			attributeValue[i] = attributeObjArray[i].get("current");
 			if (attributeValue[i] == "") {
-			sendChat("", "/desc " + attributeArray[i] + " is empty.");
+			sendChat("API","/w " + who + " " + attributeArray[i] + " is empty.");
+			//sendChat("","/desc " + attributeArray[i] + " is empty.");
+			
 			j++;
 			};
 	};
@@ -243,7 +245,7 @@ function getAttributeObjects(characterObj, attributeArray) {
 
 //-----------------------------------------------------------------
 
-function getCharacterObj(obj) {
+function getCharacterObj(obj,who) {
 	
 	//send any object and returns the associated character object
 	//returns character object for attribute, token/graphic, and ability, and... character
@@ -251,8 +253,8 @@ function getCharacterObj(obj) {
 	var objType = obj._type;
 	
 	if ((objType != "attribute") && (objType != "graphic") && (objType != "character")) {
-		sendChat("", "/desc cannot be associated with a character.");
-		log("getCharacterObj: object cannot be associated with a character");
+		sendChat("API","/w " + who + " cannot be associated with a character.");
+		//sendChat("","/desc cannot be associated with a character.");
 		return false;
 	} 
 
@@ -268,7 +270,7 @@ function getCharacterObj(obj) {
     	if (tok.get("represents") != "") {
        		var characterObj = getObj("character", tok.get("represents"));
     	} else {
-			sendChat("", "/desc Selected token does not represent a character.");
+			sendChat("API","/w " + who + " Selected token does not represent a character.");
 			return false;
     	};
 	};
@@ -291,7 +293,8 @@ function attrib(characterObj,attributeObjArray,newValue) {
 		attributeObjArray[0].set("current", newValue);
 		
 		//output
-		sendChat("", "/desc " + characterName + " has changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		sendChat("API", "/w " + characterName + " Changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
 };
 
 on("chat:message", function(msg) {
@@ -303,15 +306,15 @@ on("chat:message", function(msg) {
 		var newValue = Parameters.split("|")[1];
 		
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-		    var characterObj = getCharacterObj(obj);
+		    var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj == false) return;	
-			var attributeObjArray = getAttributeObjects(characterObj, attributeName);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeName,msg.who);
 			if (attributeObjArray == false) return;
 			attrib(characterObj,attributeObjArray,newValue);
 		});
@@ -341,7 +344,8 @@ function diceChain(characterObj,attributeObjArray,newValue) {
 	attributeObjArray[0].set("current", newDie);
 	
 	//output
-	sendChat("", "/desc " + characterName + " has changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+	sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+	sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
 
 };
 
@@ -356,15 +360,15 @@ on("chat:message", function(msg) {
 		var newValue = Parameters.split("|")[1];
 		
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj == false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeName);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeName,msg.who);
 			if (attributeObjArray == false) return;
 			diceChain(characterObj,attributeObjArray,newValue);
 		});
@@ -473,15 +477,15 @@ on("chat:message", function(msg) {
 		var threat = param.split("|")[4];
 			
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj == false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
 			if (attributeObjArray == false) return;
 			deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
 		});
@@ -1208,15 +1212,15 @@ on("chat:message", function(msg) {
         var spellModArray = spellMod.split(",");
 				
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj == false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
 			if (attributeObjArray == false) return;
 			clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});
@@ -1308,15 +1312,15 @@ on("chat:message", function(msg) {
         var spellModArray = spellMod.split(",");
 				
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj == false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
 			if (attributeObjArray == false) return;
 			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});

@@ -91,7 +91,7 @@ on("chat:message", function(msg) {
         var spellModArray = spellMod.split(",");
 				
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	

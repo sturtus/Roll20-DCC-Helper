@@ -95,7 +95,7 @@ on("chat:message", function(msg) {
 		var threat = param.split("|")[4];
 			
 		if(!selected) {
-			sendChat("", "/desc Select token and try again.");
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
 			return; //quit if nothing selected
 		}; 
 	

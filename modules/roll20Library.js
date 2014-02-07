@@ -24,7 +24,7 @@ function removePlus(string) {
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
-function getAttributeObject(characterObj, a) {
+function getAttributeObject(characterObj, attributeObjArray, who) {
 	// can pass array of attribute strings or a single attribute string	along with an associated character
 	// returns those attributes as an object array or returns false if they do not exist on the passed character.
 	
@@ -39,7 +39,7 @@ function getAttributeObject(characterObj, a) {
 		for (var i = 0; i < attributeArray.length; i++) {
 			attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
 			if (attributeObjArray[i] == undefined) {
-				sendChat("", "/desc Selected character requires attribute: " + attributeArray[i] + " ");
+				sendChat("API","/w " + who + " Selected character requires attribute: " + attributeArray[i] + " ");
 			};
 		};		
 	};
@@ -65,7 +65,7 @@ function getAttributeObject(characterObj, a) {
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
-function getCharacterObj(obj) {
+function getCharacterObj(obj,who) {
 	
 	//send any object and returns the associated character object
 	//returns character object for attribute, token/graphic, and ability, and... character
@@ -73,8 +73,7 @@ function getCharacterObj(obj) {
 	var objType = obj._type;
 	
 	if ((objType != "attribute") && (objType != "graphic") && (objType != "character")) {
-		sendChat("", "/desc cannot be associated with a character.");
-		log("getCharacterObj: object cannot be associated with a character");
+			sendChat("API","/w " + who + " cannot be associated with a character.");
 		return false;
 	} 
 
@@ -90,7 +89,7 @@ function getCharacterObj(obj) {
     	if (tok.get("represents") != "") {
        		var characterObj = getObj("character", tok.get("represents"));
     	} else {
-			sendChat("", "/desc Selected token does not represent a character.");
+			sendChat("API","/w " + who + " Selected token does not represent a character.");
 			return false;
     	};
 	};
