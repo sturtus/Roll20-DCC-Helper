@@ -1,5 +1,5 @@
-/* 	updates related modifier on character sheet when current attribute value is changed
-	still need to add some chat output
+/*     updates related modifier on character sheet when current attribute value is changed
+    still need to add some chat output
 */
 
 function returnAbilityModifier (abilityScore) {
@@ -34,28 +34,28 @@ on("change:attribute:current", function(attribute) {
     character = characterObj.get("name");
     tmp = character; log(tmp);
     var modifierName;
-    switch(changedAttribute) {
-        case "Strength":
-            modifierName = "STR"
-        break;
-        case "Agility":
-            modifierName = "AGI"
-        break;
-        case "Stamina":
-            modifierName = "STA"
-        break;
-        case "Personality":
-            modifierName = "PER"
-        break;
-        case "Intelligence":
-            modifierName = "INT"
-        break;
-        case "Luck":
-            modifierName = "LCK"
-        break;
+    for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
+        if (changedAttribute === state.dcc.abilityScoreArray[i][0]) {
+            modifierName = state.dcc.abilityScoreArray[i][1];
+            break;
+        };
     };
-    var attributeObjArray = getAttributeObjects(characterObj,modifierName,character);
-    log(attributeObjArray);
-    newModifier = returnAbilityModifier(newAbilityScoreValue);
-    attributeObjArray[0].set("current",newModifier);
+    if (modifierName !== undefined) {
+        var attributeObjArray = getAttributeObjects(characterObj,modifierName,character);
+        log(attributeObjArray);
+        newModifier = returnAbilityModifier(newAbilityScoreValue);
+        tmp = newModifier; log(tmp);
+        attributeObjArray[0].set("current",newModifier);
+    };
+});
+
+on("ready", function() {
+    if (!state.dcc) {
+        state.dcc = {}; 
+        tmp = "Created state.dcc: " + state.dcc; log(tmp);
+    };
+    if (!state.dcc.abilityScoreArray) {
+        state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
+        tmp = "Created state.dcc.abilityScoreArray: " + state.dcc.abilityScoreArray; log(tmp);
+    };
 });
