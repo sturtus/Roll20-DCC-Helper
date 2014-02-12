@@ -38,7 +38,7 @@ function getAttributeObject(characterObj, attributeObjArray, who) {
 		};
 		for (var i = 0; i < attributeArray.length; i++) {
 			attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
-			if (attributeObjArray[i] == undefined) {
+			if (attributeObjArray[i] ===  undefined) {
 				sendChat("API","/w " + who + " Selected character requires attribute: " + attributeArray[i] + " ");
 			};
 		};		
@@ -51,7 +51,7 @@ function getAttributeObject(characterObj, attributeObjArray, who) {
 	var j = 0;
 	for (var i = 0; i < attributeArray.length; i++) {
 			attributeValue[i] = attributeObjArray[i].get("current");
-			if (attributeValue[i] == "") {
+			if (attributeValue[i] ===  "") {
 			sendChat("", "/desc " + attributeArray[i] + " is empty.");
 			j++;
 			};
@@ -77,14 +77,14 @@ function getCharacterObj(obj,who) {
 		return false;
 	} 
 
-	if ((objType == "attribute") || (objType == "ability")) {
+	if ((objType ===  "attribute") || (objType ===  "ability")) {
 		var att = getObj(objType, obj._id);
 		if (att.get("_characterid") != "") {
 			var characterObj = getObj("character", att.get("_characterid"));
 		};
 	};
 	
-	if (objType == "graphic") { 
+	if (objType ===  "graphic") { 
 		var tok = getObj("graphic", obj._id);
     	if (tok.get("represents") != "") {
        		var characterObj = getObj("character", tok.get("represents"));
@@ -94,7 +94,7 @@ function getCharacterObj(obj,who) {
     	};
 	};
 		
-	if (objType == "character") {
+	if (objType ===  "character") {
 		var characterObj = getObj("character", obj._id);
 	}
 

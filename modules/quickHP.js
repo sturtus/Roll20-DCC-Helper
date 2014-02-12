@@ -24,7 +24,7 @@ function hitPoints(tokenObj,number,faces,bonus) {
 };
 
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.content.indexOf("!HP ") !== -1) {
+    if (msg.type ===  "api" && msg.content.indexOf("!HP ") !== -1) {
 		//parse the input
         var selected = msg.selected;
 		var Parameters = msg.content.split("!HP ")[1];

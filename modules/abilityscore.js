@@ -10,7 +10,7 @@ function getCharAbilityMod(characterObj,attributeName) {
 
 
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.content.indexOf("!getmod ") !== -1) {
+    if (msg.type ===  "api" && msg.content.indexOf("!getmod ") !== -1) {
     	//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
         var attributeName = msg.content.split("!getmod ")[1];
@@ -23,9 +23,9 @@ on("chat:message", function(msg) {
 		//loop through selected tokens
 		_.each(selected, function(obj) {
 			var characterObj = getCharacterObj(obj);
-			if (characterObj == false) return;
+			if (characterObj ===  false) return;
 			var attribute = getAttributeObjects(characterObj, attributeName);
-			if (attribute == false) return;
+			if (attribute ===  false) return;
             var modifier = getAbilityMod(attribute[0].get("current"));
 			sendChat("API","Modifier for " + attributeName + " is " + modifier + ".");
 		});

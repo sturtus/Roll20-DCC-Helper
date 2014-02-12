@@ -1,5 +1,5 @@
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.who.indexOf("(GM)") !== -1 && msg.content.indexOf("!tracker") !== -1) {
+    if (msg.type ===  "api" && msg.who.indexOf("(GM)") !== -1 && msg.content.indexOf("!tracker") !== -1) {
         var n = msg.content.split(" ", 2);
         var tracker = findObjs({
     	    _pageid: Campaign().get("playerpageid"),
@@ -7,7 +7,7 @@ on("chat:message", function(msg) {
 		    name: "Tracker"
         });
         _.each (tracker, function(obj) {
-            if (n[1] == "off") { 
+            if (n[1] ===  "off") { 
     		    obj.set({bar2_value: 0});
                 sendChat("Util","/w gm Tracker token turned " + n[1]);
             } else {
@@ -20,7 +20,7 @@ on("chat:message", function(msg) {
 
 
 on("change:graphic", function(obj, prev) { 
-    if (obj.get("name") == "Tracker" && obj.get("bar2_value") == 1) {
+    if (obj.get("name") ===  "Tracker" && obj.get("bar2_value") ===  1) {
         var xDif = 0;
         var yDif = 0;
         var unitsMoved = 0;

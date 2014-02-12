@@ -1,6 +1,6 @@
 function test(obj, attributeArray) {
 	var characterObj = getCharacterObj(obj);
-	if (characterObj == false) return;
+	if (characterObj ===  false) return;
 	log("PASSED characterObj test");
 	log("--------------------------------------------------------");
 	log("test function characterObj")
@@ -9,13 +9,13 @@ function test(obj, attributeArray) {
 	log("--------------------------------------------------------");
 	log("test function attributeObjArray");
 	log(attributeObjArray);
-	if (attributeObjArray == false) return;
+	if (attributeObjArray ===  false) return;
 	log("PASSED attributeObjArray test");
 };
 
 
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.content.indexOf("!test") !== -1) {
+    if (msg.type ===  "api" && msg.content.indexOf("!test") !== -1) {
 		var selected = msg.selected;
 		var attributeArray = ["ActionDie", "DeedDie", "STR", "AGI", "LCK"];
 			

@@ -12,7 +12,7 @@ function attrib(characterObj,attributeObjArray,newValue) {
 };
 
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.content.indexOf("!attrib ") !== -1) {
+    if (msg.type ===  "api" && msg.content.indexOf("!attrib ") !== -1) {
 		//parse the input into two variables, attribute and newValue
         var selected = msg.selected;
 		var Parameters = msg.content.split("!attrib ")[1];
@@ -27,9 +27,9 @@ on("chat:message", function(msg) {
 		//loop through selected tokens
 		_.each(selected, function(obj) {
 		    var characterObj = getCharacterObj(obj);
-			if (characterObj == false) return;	
+			if (characterObj ===  false) return;	
 			var attributeObjArray = getAttributeObjects(characterObj, attributeName);
-			if (attributeObjArray == false) return;
+			if (attributeObjArray ===  false) return;
 			attrib(characterObj,attributeObjArray,newValue);
 		});
 	

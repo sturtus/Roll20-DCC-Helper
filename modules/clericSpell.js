@@ -1,6 +1,6 @@
 // 		var attributeArray = ["ActionDie", "Disapproval", "CasterLevel", "PER", "LCK"];
 // var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
-//			if (attributeObjArray == false) return;
+//			if (attributeObjArray ===  false) return;
 
 
 function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
@@ -29,9 +29,9 @@ function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
 	var spellMods = spellModArray;
 	for (var i = 2; i < attributeObjArray.length; i++) {
 		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") == spellModArray[j]) {
+			if (attributeObjArray[i].get("name") ===  spellModArray[j]) {
 				// check if this is caster level, in which case no need to get the value off the ability score table
-				if (spellModArray[j] == attributeObjArray[2].get("name"))  {
+				if (spellModArray[j] ===  attributeObjArray[2].get("name"))  {
 					spellMods[j] = Number(attributeObjArray[2].get("current"));
 				} else {
 				spellMods[j] = getAbilityMod(attributeObjArray[i].get("current"));
@@ -81,7 +81,7 @@ function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
 
 
 on("chat:message", function(msg) {
-    if (msg.type == "api" && msg.content.indexOf("!clericspell ") !== -1) {
+    if (msg.type ===  "api" && msg.content.indexOf("!clericspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
         var param = msg.content.split("!clericspell ")[1];
@@ -98,7 +98,7 @@ on("chat:message", function(msg) {
 		//loop through selected tokens
 		_.each(selected, function(obj) {
 			var characterObj = getCharacterObj(obj);
-			if (characterObj == false) return;
+			if (characterObj ===  false) return;
 			clericSpell(characterObj, spellName, spellLevel, spellModArray);
 		});
 		
