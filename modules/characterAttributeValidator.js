@@ -84,8 +84,8 @@ on("ready", function() {
         tmp = "state.dcc: " + state.dcc; log(tmp);
     };
     // un-comment this when list is final, or whenever changes need to be made to state.dcc.sheetAttributeArray
-	//if (!state.dcc.sheetAttributeArray) {
-        state.dcc.sheetAttributeArray = ["HP","AC","Strength","STR","Agility","AGI","Stamina","STA","Personality","PER","Intelligence","INT","Luck","LCK","INIT","XP","CasterLevel","Disapproval","ActionDie","CrtiDie","FumbleDie","PP","EP","GP","SP","CP","Speed"]; 
+    //if (!state.dcc.sheetAttributeArray) {
+        state.dcc.sheetAttributeArray = ["HP","AC","Strength","STR","Agility","AGI","Stamina","STA","Personality","PER","Intelligence","INT","Luck","LCK","INIT","XP","CasterLevel","Disapproval","ActionDie","CritDie","FumbleDie","PP","EP","GP","SP","CP","Speed"]; 
 
         tmp = "Created state.dcc.sheetAttributeArray: " + state.dcc.sheetAttributeArray; log(tmp);
 	//};
