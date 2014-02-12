@@ -45,7 +45,7 @@ on("chat:message", function(msg) {
                 attName = currentCharacterAttributes[i].get("name");
                 attributeNamesArray.push(attName);
                 attCurrent = currentCharacterAttributes[i].get("current");
-                attMax = currentCharacterAttributes[i].get("current");
+                attMax = currentCharacterAttributes[i].get("max");
                 chatString += "<tr><td><strong>" + attName + "</strong> </td><td>" + attCurrent + "</td><td>" + attMax + "</td></tr>";
             };
             
