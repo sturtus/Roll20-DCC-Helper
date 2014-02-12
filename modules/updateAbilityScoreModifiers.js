@@ -1,3 +1,7 @@
+/* 	updates related modifier on character sheet when current attribute value is changed
+	still need to add some chat output
+*/
+
 function returnAbilityModifier (abilityScore) {
     abilityScoreModifier = 0;
     if (abilityScore < 9) {
