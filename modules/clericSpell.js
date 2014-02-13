@@ -1,4 +1,4 @@
-// 		var attributeArray = ["ActionDie", "Disapproval", "CasterLevel", "PER", "LCK"];
+// 		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
 // var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
 //			if (attributeObjArray ===  false) return;
 

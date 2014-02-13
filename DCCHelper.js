@@ -26,7 +26,7 @@
 //      - DeedDie: The die that modifies a Mighty Deed of Arms or any abilty with a die
 //        that modifies both attack and damage, such as is seen in the Crawl! magazine 
 //        classes Paladin, Ranger, and Gnome (expressed as a d3, d5, etc)
-//      - CasterLevel: The caster level of the character (starts at 1 for 1st level spellcasters)
+//      - Level: The level of the character (used as caster level in !clericspell and !wizardspell). Class of the character goes in "Max". 
 //      - Momentum: an attribute for tracking spell duels (starts at 10)
 //      - Disapproval: a cleric's current disapproval (starts at 1 for no disapproval)
 //    
@@ -68,12 +68,12 @@
 //    
 //    Command Structure
 //    
-//    !clericspell spell name|spell level|spell modifiers (PER, LCK, CasterLevel, +1, etc.)
+//    !clericspell spell name|spell level|spell modifiers (PER, LCK, Level, +1, etc.)
 //    
 //    For Example
 //    Suppy is a 1st level cleric with the blessing spell, he casts it:
 //    
-//    !clericspell Blessing|1|PER, CasterLevel
+//    !clericspell Blessing|1|PER, Level
 //    
 //    This will roll the spell at the character's current ActionDie attribute, add the 
 //    modifiers listed, check for spell success, increment disapproval if necessary, 
@@ -87,13 +87,13 @@
 //    
 //    Command Structure
 //    
-//    !wizardspell spell name|spell level|spell modifiers (INT, CasterLevel)
+//    !wizardspell spell name|spell level|spell modifiers (INT, Level)
 //    
 //    For Example
 //    Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
 //    that gives him a +1 to cast the spell
 //    
-//    !wizardspell Animal Summoning|1|INT, CasterLevel, +1
+//    !wizardspell Animal Summoning|1|INT, Level, +1
 //    
 //    Getting the hang of it?
 //    
@@ -1204,7 +1204,7 @@ on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!clericspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
-		var attributeArray = ["ActionDie", "Disapproval", "CasterLevel", "PER", "LCK"];
+		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
         var param = msg.content.split("!clericspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];
@@ -1304,7 +1304,7 @@ on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!wizardspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
-		var attributeArray = ["ActionDie", "CasterLevel", "INT"];
+		var attributeArray = ["ActionDie", "Level", "INT"];
         var param = msg.content.split("!wizardspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];

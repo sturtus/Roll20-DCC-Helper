@@ -43,7 +43,7 @@ on("ready", function() {
 	state.dcc.dccAttributes.luck = 			state.dcc.dccAttributes.luck 			|| "LCK";
 	state.dcc.dccAttributes.actionDie = 	state.dcc.dccAttributes.actiondie 		|| "ActionDie";
 	state.dcc.dccAttributes.deedDie = 		state.dcc.dccAttributes.deedDie 		|| "DeedDie";
-	state.dcc.dccAttributes.casterLevel = 	state.dcc.dccAttributes.casterLevel 	|| "CasterLevel";
+	state.dcc.dccAttributes.level = 	state.dcc.dccAttributes.level 	|| "Level";
 	state.dcc.dccAttributes.momentum = 		state.dcc.dccAttributes.momentum 		|| "Momentum";
 	state.dcc.dccAttributes.critDie = 		state.dcc.dccAttributes.critDie 		|| "CRIT";
 	state.dcc.dccAttributes.hitPoints = 	state.dcc.dccAttributes.hitPoints 		|| "HP";

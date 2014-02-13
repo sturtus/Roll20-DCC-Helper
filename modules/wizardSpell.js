@@ -75,7 +75,7 @@ on("chat:message", function(msg) {
     if (msg.type ===  "api" && msg.content.indexOf("!wizardspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
-		var attributeArray = ["ActionDie", "CasterLevel", "INT"];
+		var attributeArray = ["ActionDie", "Level", "INT"]; 
         var param = msg.content.split("!wizardspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];
