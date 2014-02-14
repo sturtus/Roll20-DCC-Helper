@@ -41,6 +41,29 @@ function moneyCounter(msg,selected,action) {
     return coinArray;
 };
 
+function formatTreasurerChatString(character,coinArray,earn) {
+    var comma = "off";
+    var abbrev = ["pp","ep","gp","sp","cp"];
+    var chatString = " <br/>" + character + " has ";
+    if (earn === 1) {
+        chatString += "earned ";
+    } else chatString += "spent ";
+    chatString += "<strong>";
+    for (i = 0; i < 5; i++) {
+        tmp = comma; log(tmp);
+        if (coinArray[i] !== 0) {
+            if (comma == "on") {
+                chatString += ", ";
+            };
+            chatString += coinArray[i] + abbrev[i];
+            comma = "on";
+        };
+        tmp = chatString; log(tmp);
+    };
+    chatString +=  "</strong>"; 
+    return chatString; 
+};
+
 function addCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
 	tmp = "|- addCoins"; log(tmp);
     tmp = "|-- availableCoinArray = " + availableCoinArray; log(tmp);
@@ -55,9 +78,9 @@ function addCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
         availableCoinArray[i] += coinArray[i]
     };
     tmp = "|-- availableCoinArray = " + availableCoinArray; log(tmp);
-	chatstring = coinArray[0] + "pp, "  + coinArray[1] + "ep, " + coinArray[2] + "gp, " + coinArray[3] + "sp, " + coinArray[4] + "cp.";
-	sendChat("Treasurer","/w " + character + " You have gained " + chatstring);
-	sendChat("Treasurer","/w gm " + character + " has gained " + chatstring);
+    chatString = formatTreasurerChatString(character,coinArray,1);
+    sendChat("Treasurer","/w " + character + chatString);
+	sendChat("Treasurer","/w gm " + chatString);
 };
 
 function spendCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
@@ -162,9 +185,10 @@ function spendCoins(characterObj,availableCoinArray,coinArray,attributeObjArray)
 	if (availableCoinArray[2] > 0) {attributeObjArray[2].set("current", availableCoinArray[2])} else attributeObjArray[2].set("current","0");
 	if (availableCoinArray[3] > 0) {attributeObjArray[3].set("current", availableCoinArray[3])} else attributeObjArray[3].set("current","0");
 	if (availableCoinArray[4] > 0) {attributeObjArray[4].set("current", availableCoinArray[4])} else attributeObjArray[4].set("current","0");
-	chatstring = coinArray[0] + "pp, "  + coinArray[1] + "ep, " + coinArray[2] + "gp, " + coinArray[3] + "sp, " + coinArray[4] + "cp.";
-	sendChat("Treasurer","/w " + character + " You have spent " + chatstring);
-	sendChat("Treasurer","/w gm " + character + " has spent " + chatstring);
+
+    chatString = formatTreasurerChatString(character,coinArray);
+    sendChat("Treasurer","/w " + character + chatString);
+    sendChat("Treasurer","/w gm " + chatString);
 };
 
 on("chat:message", function(msg) {
