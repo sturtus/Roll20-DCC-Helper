@@ -1,3 +1,16 @@
+/* 
+    ====================================
+	Roll20 Character Sheet Money Counter
+	====================================
+	!earn coin1, coin2, ...
+	!spend coin1, coin2, ...
+	!purse
+	
+	Set of commands to add and remove coins from characters. 
+	
+	
+*/
+
 function availableCoinCounter(attributeObjArray) {
     var availableCoinArray = [0,0,0,0,0];
 	availableCoinArray[0] += parseInt(attributeObjArray[0].get("current"));

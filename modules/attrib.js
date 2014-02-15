@@ -1,3 +1,16 @@
+/*
+	=======
+	!attrib 	
+	=======
+	!attrib attribute|newValue
+	
+	Chat command to change an attribute's current value for selected token. 
+	Usage: "!attrib Strength|12" will change the Strength attribute of the selected token
+	to 12. 
+	
+	Mainly for use in token macros. 
+	
+*/
 function attrib(characterObj,attributeObjArray,newValue) {
 		var attributeName = attributeObjArray[0].get("name");
 		var attributeValue = attributeObjArray[0].get("current");
@@ -12,7 +25,7 @@ function attrib(characterObj,attributeObjArray,newValue) {
 };
 
 on("chat:message", function(msg) {
-    if (msg.type ===  "api" && msg.content.indexOf("!attrib ") !== -1) {
+    if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
 		//parse the input into two variables, attribute and newValue
         var selected = msg.selected;
 		var Parameters = msg.content.split("!attrib ")[1];
@@ -26,10 +39,10 @@ on("chat:message", function(msg) {
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-		    var characterObj = getCharacterObj(obj);
-			if (characterObj ===  false) return;	
-			var attributeObjArray = getAttributeObjects(characterObj, attributeName);
-			if (attributeObjArray ===  false) return;
+		    var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;	
+			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
+			if (attributeObjArray === false) return;
 			attrib(characterObj,attributeObjArray,newValue);
 		});
 	

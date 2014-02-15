@@ -1,3 +1,28 @@
+/*
+	========================
+	DCC Wizard Spell Command
+	========================
+	!wizardspell spellName|spellLevel|spellModifiers
+
+	Command to cast a wizard spell. If the spell fails, lists spell failure, possible
+	WORSE language, and spell loss if appropriate. Command is required for wizards
+	participating in a spell duel (attackers and defenders).
+	
+	spellName: a string used in chat output as the name of the spell
+	spellLevel: the level of the spell being cast (1, 2, etc.)
+	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
+		roll. Can be mix of character attributes (INT,Level) as well as 
+		numeric modifiers (+1). 
+	
+	Example:
+	~~~~~~~~
+	Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
+	that gives him a +1 to cast the spell
+
+	!wizardspell Animal Summoning|1|INT, Level, +1
+
+*/
+
 function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
 
 	//finally assign the variables for output.	
@@ -15,12 +40,12 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	var spellMods = spellModArray;
 	for (var i = 1; i < attributeObjArray.length; i++) {
 		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") ===  spellModArray[j]) {
+			if (attributeObjArray[i].get("name") === spellModArray[j]) {
 				// check if this is caster level, in which case no need to get the value off the ability score table
-				if (spellModArray[j] ===  attributeObjArray[1].get("name"))  {
+				if (spellModArray[j] === attributeObjArray[1].get("name"))  {
 					spellMods[j] = Number(attributeObjArray[1].get("current"));
 				} else {
-				spellMods[j] = getAbilityMod(attributeObjArray[i].get("current"));
+				spellMods[j] = attributeObjArray[i].get("current");
 				};
 			};			
 		};
@@ -50,7 +75,7 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	};
 	
 	if (spellRoll < spellTarget) {
-		if (spellRoll ===  1) {
+		if (spellRoll === 1) {
 			sendChat("", "/desc Lost, failure, and worse!");
 			spellSuccess = false;
 		};
@@ -65,14 +90,14 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	};
 	
 	// in case there is a spell duel happening, send the results to that function
-	spellDuel(characterObj, spellName, spellRoll, spellSuccess);
+	spellDuel(characterObj, spellName, spellRoll);
 	
 	
 };
 
 
 on("chat:message", function(msg) {
-    if (msg.type ===  "api" && msg.content.indexOf("!wizardspell ") !== -1) {
+    if (msg.type === "api" && msg.content.indexOf("!wizardspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
 		var attributeArray = ["ActionDie", "Level", "INT"]; 
@@ -90,9 +115,9 @@ on("chat:message", function(msg) {
 		//loop through selected tokens
 		_.each(selected, function(obj) {
 			var characterObj = getCharacterObj(obj);
-			if (characterObj ===  false) return;
+			if (characterObj === false) return;
 			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
-			if (attributeObjArray ===  false) return;
+			if (attributeObjArray === false) return;
 			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});
 		

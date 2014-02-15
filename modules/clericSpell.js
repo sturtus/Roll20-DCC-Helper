@@ -1,22 +1,41 @@
-// 		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
-// var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
-//			if (attributeObjArray ===  false) return;
+/*
+	========================
+	DCC Cleric Spell Command
+	========================
+	!clericspell spellName|spellLevel|spellModifiers
 
+	Command to cast a cleric spell. If the spell fails, it will increment disapproval up by 1. 
+	If a natural roll is in the disapproval range, it will roll for the disapproval. Command 
+	is required for clerics participating in a spell duel (attackers and defenders).
 
-function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
+	spellName: a string used in chat output as the name of the spell
+	spellLevel: the level of the spell being case (1, 2, etc.)
+	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
+		roll. Can be mix of character attributes (INT,Level) as well as 
+		numeric modifiers (+1). 
 
-	var attributeArray = [];
-	var attributeObjArray = [];
 	
-		attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
+	Example:
+	~~~~~~~~
+	Suppy is a 1st level cleric with the blessing spell, he casts it:
+	
+	!clericspell Blessing|1|PER,Level
+	
+	This will roll the spell at the character's current ActionDie attribute, add the 
+	modifiers listed, check for spell success, increment disapproval if necessary, 
+	and roll the disapproval number if a natural roll is in the disapproval range.
+	
+	
+*/
+function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
+
 	//finally assign the variables for output.	
 	var characterName = characterObj.get("name");	
 	var actionDieValue = attributeObjArray[0].get("current");
 	var disapprovalObj = attributeObjArray[1];
 	var disapprovalAtt = attributeObjArray[1].get("name")//attributeArray[1];
 	var disapprovalValue = Number(attributeObjArray[1].get("current"));
-
-	var luckValue = getAbilityMod(attributeObjArray[4].get("current"));
+	var luckValue = Number(attributeObjArray[4].get("current"));
 	var spellTarget = 10+(2*Number(spellLevel));
 	
     // get the action die max value and die roll, as expressed as 1d20 or d5 or whatever in the current value of the attribute.
@@ -29,14 +48,9 @@ function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
 	var spellMods = spellModArray;
 	for (var i = 2; i < attributeObjArray.length; i++) {
 		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") ===  spellModArray[j]) {
-				// check if this is caster level, in which case no need to get the value off the ability score table
-				if (spellModArray[j] ===  attributeObjArray[2].get("name"))  {
-					spellMods[j] = Number(attributeObjArray[2].get("current"));
-				} else {
-				spellMods[j] = getAbilityMod(attributeObjArray[i].get("current"));
-				};
-			};
+			if (attributeObjArray[i].get("name") === spellModArray[j]) {
+				spellMods[j] = attributeObjArray[i].get("current");
+			};			
 		};
 	};
 		
@@ -44,7 +58,7 @@ function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
 	var spellChatString = spellName + ": [[" + actionDieResult; 
     if (spellModArray[0] != "None") {
         for (var i = 0; i < spellMods.length; i++) {
-			//spellMods[i] = parseInt(removePlus(spellMods[i]));
+			spellMods[i] = parseInt(removePlus(spellMods[i]));
             spellChatString = spellChatString.concat(" + ", spellMods[i] , " ");
 			spellRoll = spellRoll + spellMods[i];
         };
@@ -81,9 +95,10 @@ function clericSpell(characterObj, spellName, spellLevel, spellModArray) {
 
 
 on("chat:message", function(msg) {
-    if (msg.type ===  "api" && msg.content.indexOf("!clericspell ") !== -1) {
+    if (msg.type === "api" && msg.content.indexOf("!clericspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
+		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
         var param = msg.content.split("!clericspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];
@@ -97,9 +112,11 @@ on("chat:message", function(msg) {
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
-			if (characterObj ===  false) return;
-			clericSpell(characterObj, spellName, spellLevel, spellModArray);
+			var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+			if (attributeObjArray === false) return;
+			clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});
 		
     };

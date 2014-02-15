@@ -1,9 +1,17 @@
-// ----------------- monster HP assign to token function ----------------------- //
-// I've set up token actions on monster character sheets
-// when selecting a freshly-placed token, click the action to roll HP and assign 
-// to bar1 current and max
-// e.g. (using the "Hit Dice" attribute on my default monster template):
-// !HP @{Hit Dice}
+/*
+	=============================================
+	Roll20 Quick HP Assignment for Monster Tokens
+	=============================================
+	!HP hitDiceExpression
+	
+	Command to generate a hit point total for selected tokens, based on a hitDiceExpression
+	in the form of 1d8+0, 2d12+5, etc., and assign it to the current/max values of 
+	each token's bar 1. 
+
+	I've set up all monster tokens to have the hitDiceExpression in an attribute named 
+	"Hit Dice" and a macro: "!HP @{selected|Hit Dice}".
+	
+*/
 
 function hitPoints(tokenObj,number,faces,bonus) {
 
@@ -24,7 +32,7 @@ function hitPoints(tokenObj,number,faces,bonus) {
 };
 
 on("chat:message", function(msg) {
-    if (msg.type ===  "api" && msg.content.indexOf("!HP ") !== -1) {
+    if (msg.type === "api" && msg.content.indexOf("!HP ") !== -1) {
 		//parse the input
         var selected = msg.selected;
 		var Parameters = msg.content.split("!HP ")[1];

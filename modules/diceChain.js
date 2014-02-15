@@ -1,13 +1,17 @@
 /*
-function to change an attribute with a d20 value and move it up or down the 
-DCC dice chain by x number of dice.
+	======================
+	DCC Dice Chain Command
+	======================
+	!diceChain attribute|positionChange
+	
+	Command to change an attribute for selected tokens' attribute with a die roll 
+	value and move it up or down the DCC dice chain by positionChange. 
 
-!diceChain attributeName|newValue
-
-!diceChain ActionDie|+1
-!diceChain ActionDie|-2
-!diceChain DeedDie|-1
-!diceChain WeaponDamage|-1
+	!diceChain ActionDie|+1
+	!diceChain ActionDie|-2
+	!diceChain DeedDie|-1
+	!diceChain WeaponDamage|-1
+	
 */
 
 function diceChain(characterObj,attributeObjArray,newValue) {
@@ -20,7 +24,7 @@ function diceChain(characterObj,attributeObjArray,newValue) {
 	var attributeName = attributeObjArray[0].get("name");
 	var attributeValue = attributeObjArray[0].get("current");
 	
-	var diePositionChange =	removePlus(newValue);
+	var diePositionChange =	parseInt(removePlus(newValue));
 	diePositionChange = parseInt(diePositionChange.toString());
 	
 	var newDiePosition = (diceChainArray.indexOf(attributeValue)) + diePositionChange;
@@ -36,7 +40,7 @@ function diceChain(characterObj,attributeObjArray,newValue) {
 
 
 on("chat:message", function(msg) {
-    if (msg.type ===  "api" && msg.content.indexOf("!dicechain ") !== -1) {
+    if (msg.type === "api" && msg.content.indexOf("!dicechain ") !== -1) {
 		//parse the input into two variables, attribute and newValue
 		
         var selected = msg.selected;
@@ -51,10 +55,10 @@ on("chat:message", function(msg) {
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
-			if (characterObj ===  false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeName);
-			if (attributeObjArray ===  false) return;
+			var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;
+			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
+			if (attributeObjArray === false) return;
 			diceChain(characterObj,attributeObjArray,newValue);
 		});
 		

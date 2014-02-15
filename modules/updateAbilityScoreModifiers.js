@@ -1,5 +1,12 @@
-/*     updates related modifier on character sheet when current attribute value is changed
-    still need to add some chat output
+/*     
+	============================================================
+	Roll20 Update Ability Score Modifier On Ability Score Change
+	============================================================
+
+	This function is run when the current value of an attribute that is present 
+	in the array state.dcc.abilityScoreArray and update the corresponding 
+	modifier value attribute, if necessary, based on the new value. 
+	
 */
 
 function returnAbilityModifier (abilityScore) {
