@@ -35,19 +35,6 @@
 	
 */
 /*
-	=======
-	!attrib 	
-	=======
-	!attrib attribute|newValue
-	
-	Chat command to change an attribute's current value for selected token. 
-	Usage: "!attrib Strength|12" will change the Strength attribute of the selected token
-	to 12. 
-	
-	Mainly for use in token macros. 
-	
-*/
-/*
 	======================
 	DCC Dice Chain Command
 	======================
@@ -63,12 +50,26 @@
 	
 */
 /* 
-    ==================================================
-	Roll20 Character Sheet Attribute Validator Utility
-	==================================================
+    ==========================================
+	Roll20 Character Sheet Attribute Utilities
+	==========================================
 	!stats
 	!stats Atribute1, Attribute2, ...
+	!attrib attribute|newValue
 	
+	!attrib
+	~~~~~~~
+	Chat command to change an attribute's current value for selected token. 
+	Usage: "!attrib Strength|12" will change the Strength attribute of the 
+	selected token to 12. 
+	
+	If newValue starts with a + or -, it will increase or decrease the 
+	current value by that amount. 
+	
+	Mainly for use in token macros. 
+	
+	!stats
+	~~~~~~
 	If provided with a comma-separated list of attribute names ("!stats Luck,LCK" or 
 	"!stats INIT"), will return any matching attributes and their values from all 
 	selected token's character sheets. 
@@ -86,6 +87,11 @@
 	[Implementation is DCC-specific, but pretty easily modifiable by editing 
 	state.dcc.sheetAttributeArray and modifying the switch() statement.]
 	
+	Update Ability Score Mods on Ability Score Change
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	This function is run when the current value of an attribute that is present 
+	in the array state.dcc.abilityScoreArray and update the corresponding 
+	modifier value attribute, if necessary, based on the new value. 
 */
 /* 
     ====================================
@@ -97,15 +103,6 @@
 	
 	Set of commands to add and remove coins from characters. 
 	
-	
-*/
-/*     
-	============================================================
-	Roll20 Update Ability Score Modifier On Ability Score Change
-	============================================================
-	This function is run when the current value of an attribute that is present 
-	in the array state.dcc.abilityScoreArray and update the corresponding 
-	modifier value attribute, if necessary, based on the new value. 
 	
 */
 /*
@@ -352,43 +349,6 @@ function getCharacterObj(obj,who) {
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-function attrib(characterObj,attributeObjArray,newValue) {
-		var attributeName = attributeObjArray[0].get("name");
-		var attributeValue = attributeObjArray[0].get("current");
-		var characterName = characterObj.get("name");
-		
-		// change character attribute
-		attributeObjArray[0].set("current", newValue);
-		
-		//output
-		sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
-		sendChat("API", "/w " + characterName + " Changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
-};
-
-on("chat:message", function(msg) {
-    if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
-		//parse the input into two variables, attribute and newValue
-        var selected = msg.selected;
-		var Parameters = msg.content.split("!attrib ")[1];
-		var attributeName = Parameters.split("|")[0];
-		var newValue = Parameters.split("|")[1];
-		
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-		    var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;	
-			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
-			if (attributeObjArray === false) return;
-			attrib(characterObj,attributeObjArray,newValue);
-		});
-	
-    };
-});
 
 function diceChain(characterObj,attributeObjArray,newValue) {
 	
@@ -441,6 +401,22 @@ on("chat:message", function(msg) {
     };
 });
 
+function attrib(characterObj,attributeObjArray,newValue) {
+    	var attributeName = attributeObjArray[0].get("name");
+		var attributeValue = attributeObjArray[0].get("current");
+		var characterName = characterObj.get("name");
+		
+        if (newValue.indexOf("+") === 0 || newValue.indexOf("-") === 0 ) {
+            newValue = parseInt(attributeValue) + parseInt(newValue); 
+			attributeObjArray[0].set("current", newValue);
+		} else attributeObjArray[0].set("current", newValue);
+		
+		//output
+		sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
+		updateAbilityScoreModifier(characterObj,characterName,attributeName,newValue);
+};
+
 function validateAttributes(character,currentCharacterAttributes,reportMissing) {
     var attributeSortArray = [];
     var attributeNamesArray = [];
@@ -481,6 +457,12 @@ function validateAttributes(character,currentCharacterAttributes,reportMissing) 
                             missingTable += "<tr><td>" + state.dcc.sheetAttributeArray[i] + "</td></tr>";
                         };
                     break;
+                    case "LuckDie":
+                        if (characterClass === "Thief") {
+                            missing = true;
+                            missingTable += "<tr><td>" + state.dcc.sheetAttributeArray[i] + "</td></tr>";
+                        };
+                    break;
                     case "Disapproval":
                         if (characterClass === "Cleric") {
                             missing = true;
@@ -504,7 +486,65 @@ function validateAttributes(character,currentCharacterAttributes,reportMissing) 
     return [attributeTable, missing, missingTable]; 
 };
 
+function returnAbilityModifier (abilityScore) {
+    abilityScoreModifier = 0;
+    if (abilityScore < 9) {
+        if (abilityScore > 5) {
+            abilityScoreModifier = -1;
+        } else if (abilityScore > 3) {
+            abilityScoreModifier = -2;
+        } else abilityScoreModifier = -3;
+    } else if (abilityScore > 12) {
+        if (abilityScore > 17) {
+            abilityScoreModifier = 3;
+        } else if (abilityScore > 15) {
+            abilityScoreModifier = 2;
+        } else abilityScoreModifier = 1;
+    }; 
+    return abilityScoreModifier;
+}
+
+function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
+	var modifierName; 
+	for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
+        if (abilityName === state.dcc.abilityScoreArray[i][0]) {
+            modifierName = state.dcc.abilityScoreArray[i][1];
+            break;
+        };
+    };
+    if (modifierName !== undefined) {
+        attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+        newModifier = returnAbilityModifier(abilityValue);
+        attributeObjArray[0].set("current",newModifier);
+		if (newModifier >= 0) newModifier = "+" + newModifier;
+		sendChat("API", "/w gm " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+		sendChat("API", "/w " + characterName + " " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+    };
+};
+
 on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
+		//parse the input into two variables, attribute and newValue
+        var selected = msg.selected;
+		var Parameters = msg.content.split("!attrib ")[1];
+		var attributeName = Parameters.split("|")[0];
+		var newValue = Parameters.split("|")[1];
+		
+		if(!selected) {
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
+			return; //quit if nothing selected
+		}; 
+	
+		//loop through selected tokens
+		_.each(selected, function(obj) {
+		    var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;	
+			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
+			if (attributeObjArray === false) return;
+			attrib(characterObj,attributeObjArray,newValue);
+		});
+	
+    };
     if (msg.type === "api" && msg.content.indexOf("!stats") !== -1 ) { 
         var player = msg.who.replace(/\s.+/,""); 
         var selected = msg.selected;
@@ -547,6 +587,16 @@ on("chat:message", function(msg) {
     };
 });
 
+on("change:attribute:current", function(attribute) {
+    abilityName = attribute.get("name");
+    abilityValue = attribute.get("current");
+    character_id = attribute.get("_characterid");
+    characterObj = getObj("character",character_id);
+    characterName = characterObj.get("name");
+    
+	updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue);
+});
+
 on("ready", function() {
     if (!state.dcc) {
         state.dcc = {}; 
@@ -565,12 +615,15 @@ on("ready", function() {
             "Intelligence","INT",
             "Luck","LCK",
             // saves 
-            "FORT","REF","WILL",
+            "REF","FORT","WILL",
             // dice, miscellaneous
-            "ActionDie","DeedDie","ATK","Disapproval","Momentum","CritDie","FumbleDie",
+            "ActionDie","DeedDie","ATK","CritDie","FumbleDie","LuckDie","Disapproval","Momentum",
             // coins
             "PP","EP","GP","SP","CP"]; 
 	};
+    if (!state.dcc.abilityScoreArray) {
+        state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
+    };
 });
 
 function availableCoinCounter(attributeObjArray) {
@@ -768,51 +821,6 @@ on("chat:message", function(msg) {
             tmp = "/w " + character + " You have " + availableCoinArray[0] + "pp, " + availableCoinArray[1] + "ep, " + availableCoinArray[2] + "gp, " + availableCoinArray[3] + "sp, " + availableCoinArray[4] + "cp.";
 			sendChat("Treasurer",tmp);
 		});
-    };
-});
-function returnAbilityModifier (abilityScore) {
-    abilityScoreModifier = 0;
-    if (abilityScore < 9) {
-        if (abilityScore > 5) {
-            abilityScoreModifier = -1;
-        } else if (abilityScore > 3) {
-            abilityScoreModifier = -2;
-        } else abilityScoreModifier = -3;
-    } else if (abilityScore > 12) {
-        if (abilityScore > 17) {
-            abilityScoreModifier = 3;
-        } else if (abilityScore > 15) {
-            abilityScoreModifier = 2;
-        } else abilityScoreModifier = 1;
-    }; 
-    return abilityScoreModifier;
-}
-on("change:attribute:current", function(attribute) {
-    changedAttribute = attribute.get("name");
-    newAbilityScoreValue = attribute.get("current");
-    character_id = attribute.get("_characterid");
-    characterObj = getObj("character",character_id);
-    character = characterObj.get("name");
-    var modifierName;
-    for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
-        if (changedAttribute === state.dcc.abilityScoreArray[i][0]) {
-            modifierName = state.dcc.abilityScoreArray[i][1];
-            break;
-        };
-    };
-    if (modifierName !== undefined) {
-        var attributeObjArray = getAttributeObjects(characterObj,modifierName,character);
-        log(attributeObjArray);
-        newModifier = returnAbilityModifier(newAbilityScoreValue);
-        attributeObjArray[0].set("current",newModifier);
-    };
-});
-on("ready", function() {
-    if (!state.dcc) {
-        state.dcc = {}; 
-    };
-    if (!state.dcc.abilityScoreArray) {
-        state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
     };
 });
 
