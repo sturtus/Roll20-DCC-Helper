@@ -1,0 +1,36 @@
+Attribute List for DCC
+
+hp 					(hit points)
+HD 					(hit dice)
+AC 					(armor class)
+CHK 				(armor check)
+INIT 				(initiative)
+ATK 				(attack bonus)
+ActionDie 			(action die)
+REF 				(reflex save)
+FORT 				(fortitude save)
+WILL 				(will)
+CritDie 			(crtical hit die and critical hit table in max value)
+FumbleDie 			(fumble die)
+Strength 			(strength)
+STR 				(strength modifier)
+Agility 
+AGI 				(agility modifier)
+Stamina
+STA 				(stamina modifier)
+Personality
+PER 				(personality modifier)
+Intelligence
+INT 				(intelligence modifier)
+Luck 
+LCK 				(luck modifier)
+Level
+DeedDie 			(deed die for mighty deed, smite, thief luck, magic trick for gnome)
+Disapproval 		(cleric disapproval)
+Momentum 			(spell duel momentum)
+CritRange 			(lowest crit necessary in first value, second value probably always a 20)
+PP 					(platinum pieces)
+EP 					(platinum pieces)
+GP 					(platinum pieces)
+SP 					(platinum pieces)
+CP 					(platinum pieces)
