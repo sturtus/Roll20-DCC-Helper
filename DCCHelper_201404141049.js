@@ -1,54 +1,3 @@
-/*  
-	============================
-	DCC HELPER SCRIPT FOR ROLL20
-	============================
-	
-	Description and Instructions
-	
-    A set of scripts and functions to assist players and GMs running 
-	the tabletop RPG Dungeon Crawl Classics in the virtual tabletop  
-	Roll20.net. It contains the following commands, all submitted
-	from roll20.net's chat box. Most of the require a token to be selected
-	in order to determine which character/token will be submitting the
-	command. Each command separates different arguments with the pipe (|) key.
-	
-	Prerequisites:
- 	 - Campaign must be using the roll20.net API
- 	 - Character tokens on the game board must be linked to characters in the journal
- 	 - Characters in the journal must have attributes defined in each of the command's functions
-	These are modifiable by simply defining them in the array of listed attributes at the top of each 
-	API command entry that requires them. These attributes, by default, are the following:
- 	 - STR: the character's strength modifier (+1, -2, 0, etc)
- 	 - AGI: agility modifier
- 	 - STA: stamina modifier
- 	 - INT: intelligence modifier
- 	 - PER: personality modifier
- 	 - LCK: luck modifier
- 	 - ActionDie: The action die to roll for the ability, generally a d20, but in DCC often
-		this is also a d14 or possibly d16, d24 (expressed as d20, d12, d16, etc)
-	 - DeedDie: The die that modifies a Mighty Deed of Arms or any abilty with a die
-		that modifies both attack and damage, such as is seen in the Crawl! magazine 
-			classes Paladin, Ranger, and Gnome (expressed as a d3, d5, etc)
-	 - CasterLevel: The caster level of the character (starts at 1 for 1st level spellcasters)
- 	 - Momentum: an attribute for tracking spell duels (starts at 10)
- 	 - Disapproval: a cleric's current disapproval (starts at 1 for no disapproval)
-	
-*/
-/*
-	======================
-	DCC Dice Chain Command
-	======================
-	!diceChain attribute|positionChange
-	
-	Command to change an attribute for selected tokens' attribute with a die roll 
-	value and move it up or down the DCC dice chain by positionChange. 
-
-	!diceChain ActionDie|+1
-	!diceChain ActionDie|-2
-	!diceChain DeedDie|-1
-	!diceChain WeaponDamage|-1
-	
-*/
 /* 
     ==========================================
 	Roll20 Character Sheet Attribute Utilities
@@ -83,7 +32,6 @@
 	is used to identify	the class of the character, i.e. Level 1 / Cleric. This is used by
 	the validator to tell whether a character is missing a class-specific attribute, or if
 	they don't require it (i.e., so a cleric won't get an error when they don't have a DeedDie). 
-
 	[Implementation is DCC-specific, but pretty easily modifiable by editing 
 	state.dcc.sheetAttributeArray and modifying the switch() statement.]
 	
@@ -93,30 +41,52 @@
 	in the array state.dcc.abilityScoreArray and update the corresponding 
 	modifier value attribute, if necessary, based on the new value. 
 */
-/* 
-    ====================================
-	Roll20 Character Sheet Money Counter
-	====================================
-	!earn coin1, coin2, ...
-	!spend coin1, coin2, ...
-	!purse
+/*  Chronos Timekeeper: Calendar and Timekeeper Script for roll20.net
 	
-	Set of commands to add and remove coins from characters. 
-	
+	!chronos                        returns elapsed time so far (needs updating)
+	!chronos #y,#m,#d,#h,#n         adds a number of years, months, days, hours, minutes (n) to clock. 
+	!chronos #y,#m,#d,#h,#n -xyz    parameters (not implemented yet)
 	
 */
 /*
-	=============================================
-	Roll20 Quick HP Assignment for Monster Tokens
-	=============================================
-	!HP hitDiceExpression
+healingData objects: 
+healingData[0][0]: minimum hours of rest for healing
+healingData[0][1]: hp for minimum rest
+healingData[0][2]: attributes points for minimum rest
+healingData[1][0]: hours required for full rest
+healingData[1][1]: hp healed for full rest
+healingData[1][2]: attribute points for full tended rest
+*/
+/* 
+on('ready', function() { 
+ 
+	state.chronosid = findObjs({_type: "character", name: "Chronos"})[0].get("_id");
+});
+*/
+});/*
+	========================
+	DCC Cleric Spell Command
+	========================
+	!clericspell spellName|spellLevel|spellModifiers
+	Command to cast a cleric spell. If the spell fails, it will increment disapproval up by 1. 
+	If a natural roll is in the disapproval range, it will roll for the disapproval. Command 
+	is required for clerics participating in a spell duel (attackers and defenders).
+	spellName: a string used in chat output as the name of the spell
+	spellLevel: the level of the spell being case (1, 2, etc.)
+	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
+		roll. Can be mix of character attributes (INT,Level) as well as 
+		numeric modifiers (+1). 
 	
-	Command to generate a hit point total for selected tokens, based on a hitDiceExpression
-	in the form of 1d8+0, 2d12+5, etc., and assign it to the current/max values of 
-	each token's bar 1. 
-
-	I've set up all monster tokens to have the hitDiceExpression in an attribute named 
-	"Hit Dice" and a macro: "!HP @{selected|Hit Dice}".
+	Example:
+	~~~~~~~~
+	Suppy is a 1st level cleric with the blessing spell, he casts it:
+	
+	!clericspell Blessing|1|PER,Level
+	
+	This will roll the spell at the character's current ActionDie attribute, add the 
+	modifiers listed, check for spell success, increment disapproval if necessary, 
+	and roll the disapproval number if a natural roll is in the disapproval range.
+	
 	
 */
 /*
@@ -131,7 +101,6 @@
 		numeric modifiers (+1). Use "None" if none present.
 	Normal|Mighty|Smite (optional): the type of deed to perform. 
 	crit: lower end of crit range, for Warriors and other fighting types. 
-
 	Command to perform a Mighty Deed of Arms, Smite, or Normal Deed Die attack 
 	(with no attached Mighty Deed)
 	
@@ -156,6 +125,45 @@
 	!deed 1d10|STR|STR|Smite
 	
 	Performs a Smite for the paladin class in the Crawl! fanzine.
+	
+*/
+});/*
+	======================
+	DCC Dice Chain Command
+	======================
+	!diceChain attribute|positionChange
+	
+	Command to change an attribute for selected tokens' attribute with a die roll 
+	value and move it up or down the DCC dice chain by positionChange. 
+	!diceChain ActionDie|+1
+	!diceChain ActionDie|-2
+	!diceChain DeedDie|-1
+	!diceChain WeaponDamage|-1
+	
+*/
+});/* 
+    ====================================
+	Roll20 Character Sheet Money Counter
+	====================================
+	!earn coin1, coin2, ...
+	!spend coin1, coin2, ...
+	!purse
+	
+	Set of commands to add and remove coins from characters. 
+	
+	
+*/
+/*
+	=============================================
+	Roll20 Quick HP Assignment for Monster Tokens
+	=============================================
+	!HP hitDiceExpression
+	
+	Command to generate a hit point total for selected tokens, based on a hitDiceExpression
+	in the form of 1d8+0, 2d12+5, etc., and assign it to the current/max values of 
+	each token's bar 1. 
+	I've set up all monster tokens to have the hitDiceExpression in an attribute named 
+	"Hit Dice" and a macro: "!HP @{selected|Hit Dice}".
 	
 */
 /*
@@ -192,39 +200,9 @@
 */
 /*
 	========================
-	DCC Cleric Spell Command
-	========================
-	!clericspell spellName|spellLevel|spellModifiers
-
-	Command to cast a cleric spell. If the spell fails, it will increment disapproval up by 1. 
-	If a natural roll is in the disapproval range, it will roll for the disapproval. Command 
-	is required for clerics participating in a spell duel (attackers and defenders).
-
-	spellName: a string used in chat output as the name of the spell
-	spellLevel: the level of the spell being case (1, 2, etc.)
-	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
-		roll. Can be mix of character attributes (INT,Level) as well as 
-		numeric modifiers (+1). 
-
-	
-	Example:
-	~~~~~~~~
-	Suppy is a 1st level cleric with the blessing spell, he casts it:
-	
-	!clericspell Blessing|1|PER,Level
-	
-	This will roll the spell at the character's current ActionDie attribute, add the 
-	modifiers listed, check for spell success, increment disapproval if necessary, 
-	and roll the disapproval number if a natural roll is in the disapproval range.
-	
-	
-*/
-/*
-	========================
 	DCC Wizard Spell Command
 	========================
 	!wizardspell spellName|spellLevel|spellModifiers
-
 	Command to cast a wizard spell. If the spell fails, lists spell failure, possible
 	WORSE language, and spell loss if appropriate. Command is required for wizards
 	participating in a spell duel (attackers and defenders).
@@ -239,168 +217,8 @@
 	~~~~~~~~
 	Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
 	that gives him a +1 to cast the spell
-
 	!wizardspell Animal Summoning|1|INT, Level, +1
-
 */
-
-function debug(msg,v) {
-	log("--------------------------------------------------------------------------");
-	log(msg);
-	log("--------------------------------------------------------------------------");
-	for (var i = 0; i < v.length; i++) {
-		log(v[i]);
-	};
-	log("--------------------------------------------------------------------------");
-	return true;
-};
-
-
-//---------------------------------------------------------------------------------------------------------------------------------------------
-
-
-function removePlus(string) {
-	// takes a string and removes the + to return the integer after it
-	// useful when attribute values +2 and you only need the integer associated.
-	var p = string.indexOf("+");
-	var n = string.substr(p+1);
-	return n;
-};
-
-//---------------------------------------------------------------------------------------------------------------------------------------------
-
-function getAttributeObjects(characterObj,attributeArray,who) {
-	// can pass array of attribute strings or a single attribute string	along with an associated character
-	// returns those attributes as an object array or returns false if they do not exist on the passed character.
-	
-	
-	// get the passed attribute name array from the character object and test if they are defined
-	
-	if (characterObj != undefined ) {
-		var attributeObjArray = new Array();
-		if (!(attributeArray instanceof Array)) {
-			attributeArray = attributeArray.split();
-		};
-		for (var i = 0; i < attributeArray.length; i++) {
-			attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
-			if (attributeObjArray[i] === undefined) {
-				sendChat("API","/w " + who + " Selected character requires attribute: " + attributeArray[i] + " ");
-			};
-		};		
-	};
-	if (attributeObjArray.indexOf(undefined) !== -1) return false;
-
-	//loop through attributeArray and names of attributes to make sure they all match and get their values if they are valid. 
-	//make sure none of the values are empty
-	var attributeValue = new Array();	
-	var j = 0;
-	for (var i = 0; i < attributeArray.length; i++) {
-			attributeValue[i] = attributeObjArray[i].get("current");
-			if (attributeValue[i] === "") {
-				sendChat("API","/w " + who + " " + attributeArray[i] + " is empty.");
-				j++;
-			};
-	};
-	if (j !== 0) return false;
-
-	return attributeObjArray;
-};
-
-
-
-//---------------------------------------------------------------------------------------------------------------------------------------------
-
-function getCharacterObj(obj,who) {
-	
-	//send any object and returns the associated character object
-	//returns character object for attribute, token/graphic, and ability, and... character
-	
-	var objType = obj._type;
-	
-	if ((objType != "attribute") && (objType != "graphic") && (objType != "character")) {
-		sendChat("API","/w " + who + " cannot be associated with a character.");
-		return false;
-	} 
-
-	if ((objType === "attribute") || (objType === "ability")) {
-		var att = getObj(objType, obj._id);
-		if (att.get("_characterid") != "") {
-			var characterObj = getObj("character", att.get("_characterid"));
-		};
-	};
-	
-	if (objType === "graphic") { 
-		var tok = getObj("graphic", obj._id);
-    	if (tok.get("represents") != "") {
-       		var characterObj = getObj("character", tok.get("represents"));
-    	} else {
-			sendChat("API","/w " + who + " Selected token does not represent a character.");
-			return false;
-    	};
-	};
-		
-	if (objType === "character") {
-		var characterObj = getObj("character", obj._id);
-	}
-
-	return characterObj;
-};
-
-//---------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-function diceChain(characterObj,attributeObjArray,newValue) {
-	
-	//need to modify to prevent going below d3 or above d30
-	
-	
-	var diceChainArray = ["d3", "d4", "d5", "d6", "d7", "d8", "d10", "d12", "d14", "d16", "d20", "d24", "d30"];
-	var characterName = characterObj.get("name");
-	var attributeName = attributeObjArray[0].get("name");
-	var attributeValue = attributeObjArray[0].get("current");
-	
-	var diePositionChange =	parseInt(removePlus(newValue));
-	diePositionChange = parseInt(diePositionChange.toString());
-	
-	var newDiePosition = (diceChainArray.indexOf(attributeValue)) + diePositionChange;
-	var newDie = diceChainArray[newDiePosition];
-
-	attributeObjArray[0].set("current", newDie);
-	
-	//output
-	sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
-	sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
-
-};
-
-
-on("chat:message", function(msg) {
-    if (msg.type === "api" && msg.content.indexOf("!dicechain ") !== -1) {
-		//parse the input into two variables, attribute and newValue
-		
-        var selected = msg.selected;
-		var Parameters = msg.content.split("!dicechain ")[1];
-		var attributeName = Parameters.split("|")[0];
-		var newValue = Parameters.split("|")[1];
-		
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
-			if (attributeObjArray === false) return;
-			diceChain(characterObj,attributeObjArray,newValue);
-		});
-		
-    };
-});
-
 function attrib(characterObj,attributeObjArray,newValue) {
     	var attributeName = attributeObjArray[0].get("name");
 		var attributeValue = attributeObjArray[0].get("current");
@@ -416,7 +234,6 @@ function attrib(characterObj,attributeObjArray,newValue) {
 		sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newValue + ".");
 		updateAbilityScoreModifier(characterObj,characterName,attributeName,newValue);
 };
-
 function validateAttributes(character,currentCharacterAttributes,reportMissing) {
     var attributeSortArray = [];
     var attributeNamesArray = [];
@@ -485,7 +302,6 @@ function validateAttributes(character,currentCharacterAttributes,reportMissing) 
     };
     return [attributeTable, missing, missingTable]; 
 };
-
 function returnAbilityModifier (abilityScore) {
     abilityScoreModifier = 0;
     if (abilityScore < 9) {
@@ -503,7 +319,6 @@ function returnAbilityModifier (abilityScore) {
     }; 
     return abilityScoreModifier;
 }
-
 function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
 	var modifierName; 
 	for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
@@ -521,7 +336,6 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
 		sendChat("API", "/w " + characterName + " " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
     };
 };
-
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
 		//parse the input into two variables, attribute and newValue
@@ -586,7 +400,6 @@ on("chat:message", function(msg) {
         };
     };
 });
-
 on("change:attribute:current", function(attribute) {
     abilityName = attribute.get("name");
     abilityValue = attribute.get("current");
@@ -596,7 +409,6 @@ on("change:attribute:current", function(attribute) {
     
 	updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue);
 });
-
 on("ready", function() {
     if (!state.dcc) {
         state.dcc = {}; 
@@ -625,7 +437,656 @@ on("ready", function() {
         state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
     };
 });
-
+on("ready", function() {
+    if (!state.chronos) {
+        state.chronos = {}; 
+    } else {
+    };
+    // remove "if" to redefine state.dcc.sheetAttributeArray, if necessary
+    if (!state.chronos.years) {state.chronos.years = 0;};
+    if (!state.chronos.months) {state.chronos.months = 1;};
+    if (!state.chronos.days) {state.chronos.days = 1;};
+    if (!state.chronos.hours) {state.chronos.hours = 0;};
+    if (!state.chronos.minutes) {state.chronos.minutes = 0;};
+    if (!state.chronos.weekday) {state.chronos.weekday = 0;};
+	};
+});
+var month = [['January',31],['February',28],["March",31],['April',30],['May',31],['June',30],['July',31],['August',31],['September',30],['October',31],['November',30],['December',31]];
+var lengthOfYear = lengthOfYear();
+var week = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var weekday = 0;
+ 
+var attributesToHeal = ['HP','Strength','Agility','Stamina','Personality','Intelligence'];
+var healingData = [[8,1,1],[1,2,2]];
+function lengthOfYear() {
+    n = 0;
+    for (i = 0; i < month.length; i++) {
+        if (month[i][2] == undefined) {
+            n = parseInt(n) + parseInt(month[i][1]);
+        };
+    };
+    return n;
+};
+function updateChronos(years,months,days,hours,minutes) {
+    if (minutes != 0) {
+        var chronosMinuteMax = 60; // hard-coding this for now
+        if (state.chronos.minutes + parseInt(minutes) >= parseInt(chronosMinuteMax)) {
+            hours = parseInt(hours) + Math.floor((state.chronos.minutes + parseInt(minutes)) / chronosMinuteMax);
+            state.chronos.minutes = Math.floor((state.chronos.minutes + parseInt(minutes)) % chronosMinuteMax);
+        } else {
+            state.chronos.minutes = parseInt(state.chronos.minutes) + parseInt(minutes)
+        };
+    };
+    if (hours != 0) {
+        var chronosHourMax = 24; // hard-coding this for now, under new state setup
+        if (state.chronos.hours + parseInt(hours) >= parseInt(chronosHourMax)) {
+            days = parseInt(days) + Math.floor((state.chronos.hours + parseInt(hours)) / chronosHourMax);
+            state.chronos.hours = Math.floor((state.chronos.hours + parseInt(hours)) % chronosHourMax);
+        } else {
+            state.chronos.hours = parseInt(state.chronos.hours) + parseInt(hours)
+        };
+    };
+	if (days != 0) {
+        // this currently won't work if you add enough days to move the timer forward more than one month
+        var chronosDayMax = month[state.chronos.months -1][1];
+        if (state.chronos.days + parseInt(days) > parseInt(chronosDayMax) && month[state.chronos.months-1][1] != 1) {
+            log("here");
+            months = parseInt(months) + Math.floor((state.chronos.days + parseInt(days)) / chronosDayMax);
+            state.chronos.days = Math.floor((state.chronos.days + parseInt(days)) % chronosDayMax);
+        } else if (state.chronos.days + parseInt(days) > parseInt(chronosDayMax) && month[state.chronos.months-1][1] == 1) {
+            log("there");
+            months = parseInt(months) + 1;
+            state.chronos.days = Math.floor((state.chronos.days + parseInt(days)) - 1);
+        } else {
+            state.chronos.days = parseInt(state.chronos.days) + parseInt(days);
+        };
+    };
+    if (months != 0) {
+        var chronosMonthMax = month.length -1;
+        if (state.chronos.months + parseInt(months) > parseInt(chronosMonthMax)) {
+            years = parseInt(years) + Math.floor((state.chronos.months + parseInt(months)) / chronosMonthMax);
+            state.chronos.months = Math.floor((state.chronos.months + parseInt(months)) % chronosMonthMax);
+        } else {
+            state.chronos.months = parseInt(state.chronos.months) + parseInt(months)
+        };
+    };
+    if (years != 0) {
+        state.chronos.years = parseInt(state.chronos.years) + parseInt(years);
+    }; 
+    n = 0;
+    for (i = 0; i < state.chronos.months -1; i++) {
+        // get all the days in preceding months
+        if (month[i][2] == undefined) {
+            n = parseInt(n) + parseInt(month[i][1]);
+        };
+    };
+    state.chronos.weekday = (((lengthOfYear * state.chronos.years) + n + state.chronos.days) % week.length);
+    var daySuffix = "th";
+    if (state.chronos.days < 4) {
+        switch(state.chronos.days) {
+            case 1:
+                daySuffix = "st";
+            break;
+            case 2:
+                daySuffix = "nd";
+            break;
+            default:
+                daySuffix = "rd";
+        };
+    };
+    var amPm = "am";
+    var displayHours = state.chronos.hours;
+    
+    if (displayHours > 11) {
+        amPm = "pm";
+        displayHours = displayHours - 11;
+    } else if (displayHours = 0) {
+        displayHours = 12;
+    };
+    
+    var paddingZero = "";
+    
+    if (state.chronos.minutes < 10) {
+        paddingZero = "0";
+    };
+    
+	sendChat("Chronos","/w gm " + state.chronos.hours + ":" + paddingZero + state.chronos.minutes + amPm);
+ 
+};
+function healCharacters(hd,lengthOfRest,typeOfHealing) {
+// healCharacters function, called when parameter includes "r" for rest, "b" for bedrest
+// lengthOfRest = number of hours or days to rest
+// hoursOrDays = h or d
+// typeOfHealing = normal, bedrest
+    // put all the tokens on the page that represent characters into charactersToHeal[] array
+    var charactersToHeal = filterObjs(function(obj) {
+        
+        if(obj.get("_pageid") == Campaign().get("playerpageid") && obj.get("_subtype") == "token" && obj.get("_represents") != "") return true;
+        
+        else return false;
+        
+    });
+    // get attributes to heal, any healingData related attributes
+    for (i = 0; i < charactersToHeal.length; i++) {
+        
+        var character = getObj("character", charactersToHeal[i].get("represents"));
+        
+        var attributes = filterObjs(function(obj){
+            
+            if (obj.get("_type") == "attribute" && obj.get("_characterid") == character.get("_id") && attributesToHeal.indexOf(obj.get("name")) != -1) return true;
+            
+            else return false;
+            
+        });
+        
+        for (i = 0; i < attributes.length; i++) {
+            // now go through all the attributes for this character
+            // and update based on the right parameters
+            
+            // if DCC, then [[8,1,1],[24,2,2]]
+            // if BFRPG, then [[6,1,1],[24,2,1]]
+            // if 3.5E, then [[8,1,'LVL'],[24,2,'LVL']]
+            
+            if (typeOfHealing == "normal") {
+                
+                if (lengthOfRest > 0 && hd == "d") {
+                    
+                    var amountToHeal = healingData[0][1] * lengthOfRest;
+                    
+                } else if (lengthOfRest >= healingData[0][0] && hd == "h") {
+                    
+                    var amountToHeal = healingData[0][1];    
+                    
+                } else {
+                    
+                    sendChat("Chronos","/w gm Not enough time for normal rest, aborting.");
+                    
+                    return; 
+                    
+                };
+                
+            } else if (typeOfHealing == "bedrest") {
+                
+                if (lengthOfRest > 0 && hd == "d") {
+                    
+                    var amountToHeal = healingData[1][1] * lengthOfRest;
+                    
+                } else {
+                    
+                    sendChat("Chronos","/w gm Not enough time for bedrest, aborting.");
+                    
+                    return; 
+                    
+                };
+            };
+            if (parseInt(attributes[i].get("current")) < parseInt(attributes[i].get("max"))) {
+                attributes[i].set("current", parseInt(attributes[i].get("current")) + parseInt(amountToHeal));
+                if (attributes[i].get("current") > attributes[i].get("max")) {
+                    attributes[i].set("current", attributes[i].get("max"));
+                };
+            };
+        };
+    };
+};
+ 
+ 
+function updateLights(lightSource,elapsedTime) {
+    var lightSourceName = lightSource.get("name");
+    var brightRadius = lightSource.get("bar3_max");
+    var dimRadius = lightSource.get("bar3_value");
+    var burningTimeTotal = lightSource.get("bar1_max");
+    var burningTimeRemaining = lightSource.get("bar1_value");
+    var trigger_dim = Math.floor(burningTimeTotal * 0.3);
+    var trigger_flicker = Math.floor(burningTimeTotal * 0.15);
+    var trigger_almostOut = Math.floor(burningTimeTotal * 0.05);
+    var newBurningTimeRemaining = burningTimeRemaining - (1.0 * elapsedTime);
+    if (burningTimeRemaining == 0 || lightSource.get("bar2_value") == 0) return; // make sure light source is lit & has fuel remaining
+    if (newBurningTimeRemaining >= trigger_dim && lightSource.get("light_radius") !== brightRadius) {
+        lightSource.set({ light_radius: brightRadius, light_dimradius: dimRadius});
+    } else if (newBurningTimeRemaining <= trigger_dim && newBurningTimeRemaining > trigger_flicker && (burningTimeRemaining > trigger_dim || burningTimeRemaining == newBurningTimeRemaining)) {
+        sendChat("","/emas " + lightSourceName + " grows dim. ");
+        lightSource.set({ light_dimradius: Math.floor(dimRadius * 0.66)});
+    } else if (newBurningTimeRemaining <= trigger_flicker && newBurningTimeRemaining > trigger_almostOut && (burningTimeRemaining > trigger_flicker || burningTimeRemaining == newBurningTimeRemaining)) {
+    
+		sendChat("","/emas " + lightSourceName + " begins to flicker. ");
+		
+        lightSource.set({ light_radius: Math.floor(brightRadius * 0.75), light_dimradius: Math.floor(dimRadius * 0.5)});
+        
+	} else if (newBurningTimeRemaining <= trigger_almostOut && newBurningTimeRemaining > 0&& (burningTimeRemaining > trigger_almostOut || burningTimeRemaining == newBurningTimeRemaining)) {
+	
+		sendChat("","/emas " + lightSourceName + " is about to go out. ");
+		
+        lightSource.set({ light_radius: Math.floor(brightRadius * 0.5), light_dimradius: 0 });
+        
+	} else if (newBurningTimeRemaining <= 0) {
+	
+        newBurningTimeRemaining = 0;
+        
+		sendChat("","/emas " + lightSourceName + " goes out!");
+		
+		lightSource.set({
+		
+			bar2_value: 0,
+			
+			light_radius: "",
+			
+			light_dimradius: ""
+			
+		});
+		
+	};
+	
+	lightSource.set({
+	
+		bar1_value: newBurningTimeRemaining
+		
+	});
+ 
+};
+ 
+ 
+function findLights(numRounds) {
+ 
+    var playerVisibleLights = filterObjs(function(obj) {
+    
+        if(obj.get("_pageid") == Campaign().get("playerpageid") && obj.get("_subtype") == "token" && obj.get("bar2_value") == "1" && obj.get("bar2_max") == "1" && obj.get("light_otherplayers") == true) return true;
+        
+        else return false;
+        
+    });
+ 
+	_.each(playerVisibleLights, function(obj) {
+	
+    	updateLights(obj,numRounds);
+    	
+	});
+	
+};
+ 
+ 
+on("chat:message", function(msg) {
+ 
+	if (msg.type == "api" && msg.who.indexOf("(GM)") !== -1 && msg.content.indexOf("!chronos") !== -1) {
+        
+        var years = 0, months = 0, days = 0, hours = 0, minutes = 0;
+        
+        var n = msg.content.split(" ");
+        
+        if (n[1] == undefined) { // i.e., just "!chronos"
+            
+            updateChronos(years,months,days,hours,minutes);
+            
+            return;
+            
+        } else if (n[2] == undefined) { // i.e., "!chronos 1d" or "!chronos 1d,4h"
+            
+            var time = n[1].split(",");
+            
+            for (i = 0; i < time.length; i++) {
+                
+                if (time[i].indexOf("y") != -1) { years = time[i].slice(0, time[i].indexOf("y")); };
+                
+                if (time[i].indexOf("m") != -1) { months = time[i].slice(0, time[i].indexOf("m")); };
+                
+                if (time[i].indexOf("d") != -1) { days = time[i].slice(0, time[i].indexOf("d")); };
+                
+                if (time[i].indexOf("h") != -1) { hours = time[i].slice(0, time[i].indexOf("h")); };
+                
+                if (time[i].indexOf("n") != -1) { minutes = time[i].slice(0, time[i].indexOf("n")); };
+                
+            };
+            
+        } else { // i.e., params (only makes sense with values for time, should add some error catching)
+            
+            var time = n[1].split(",");
+            
+            var params = n[2].slice(1);
+            
+            for (i = 0; i < time.length; i++) {
+                
+                if (time[i].indexOf("y") != -1) { years = time[i].slice(0, time[i].indexOf("y")); };
+                
+                if (time[i].indexOf("m") != -1) { months = time[i].slice(0, time[i].indexOf("m")); };
+                
+                if (time[i].indexOf("d") != -1) { days = time[i].slice(0, time[i].indexOf("d")); };
+                
+                if (time[i].indexOf("h") != -1) { hours = time[i].slice(0, time[i].indexOf("h")); };
+                
+                if (time[i].indexOf("n") != -1) { minutes = time[i].slice(0, time[i].indexOf("n")); };
+                
+            };
+            
+            // kick off torches burning, healing, etc. here
+            for (i = 0; i < params.length; i++) {
+                
+                switch (params[i]) {
+                    
+                    case "h": // heal, i.e. bedrest for 24+ hours
+                        
+                        healCharacters("d",days,"bedrest");
+                        
+                    break;
+                    
+                    case "r": // rest, i.e. sleep for 8+ hours
+                        if (_.contains(params, "h")) {
+                            
+                            sendChat("Chronos","/w gm Cannot use 'h' and 'r' in the same command, using 'h'.");
+                            
+                        } else {
+                            
+                            if (days > 0) {
+                                
+                                healCharacters("d",days,"normal");
+                                
+                            } else {
+                                
+                                healCharacters("h",hours,"normal");
+                                
+                            };
+                            
+                        };
+                        
+                    break;
+                    
+                    case "t": // torches, i.e. track light source's fuel
+                        
+                        findLights(minutes);
+                        
+                    break;
+                    
+                };
+                
+            };
+            
+        };
+        
+        updateChronos(years,months,days,hours,minutes);
+        
+    };
+ 
+});
+ 
+ 
+on("change:graphic:bar1_value", function(obj) {
+ 
+	if (obj.get("_pageid") == Campaign().get("playerpageid") && obj.get("_subtype") == "token" && obj.get("bar2_max") == "1" && obj.get("light_otherplayers") == true) {
+	
+		var maxValue = obj.get("bar1_max");
+    
+	    if (obj.get("bar1_value") > maxValue ) {
+            
+				obj.set({bar1_value: maxValue});
+                
+    		};
+	
+		updateLights(obj,0); 
+ 
+	};
+ 
+});
+on("change:graphic:bar2_value", function(obj) {
+    
+    if (obj.get("_pageid") == Campaign().get("playerpageid") && obj.get("_subtype") == "token" && obj.get("bar2_max") == "1" && obj.get("light_otherplayers") == true) {
+        
+        if (obj.get("bar2_value") > 0 ) {
+            
+            if (obj.get("bar1_value") > 0) {
+				
+				obj.set({bar2_value: 1});
+				
+			} else {
+			
+                obj.set({bar2_value: 0})
+                
+    		};
+            
+            updateLights(obj,0);
+            
+        } else if (obj.get("bar2_value") <= 0 ) {
+            
+            obj.set({bar2_value: 0});
+            
+    	    obj.set({light_radius: "",light_dimradius: ""});
+    	    
+        };
+        
+    };
+    
+function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
+	//finally assign the variables for output.	
+	var characterName = characterObj.get("name");	
+	var actionDieValue = attributeObjArray[0].get("current");
+	var disapprovalObj = attributeObjArray[1];
+	var disapprovalAtt = attributeObjArray[1].get("name")//attributeArray[1];
+	var disapprovalValue = Number(attributeObjArray[1].get("current"));
+	var luckValue = Number(attributeObjArray[4].get("current"));
+	var spellTarget = 10+(2*Number(spellLevel));
+	
+    // get the action die max value and die roll, as expressed as 1d20 or d5 or whatever in the current value of the attribute.
+	var d = actionDieValue.indexOf("d")+1;
+	var actionDieMax = parseInt(actionDieValue.slice(d));
+	var actionDieResult = randomInteger(actionDieMax);
+	var spellRoll = Number(actionDieResult); 
+	//get the values in spellModArray, return current numbers if attributes and numbers if numbers
+	var spellMods = spellModArray;
+	for (var i = 2; i < attributeObjArray.length; i++) {
+		for (var j = 0; j < spellMods.length; j++) {
+			if (attributeObjArray[i].get("name") === spellModArray[j]) {
+				spellMods[j] = attributeObjArray[i].get("current");
+			};			
+		};
+	};
+		
+	//build results and send to chat
+	var spellChatString = spellName + ": [[" + actionDieResult; 
+    if (spellModArray[0] != "None") {
+        for (var i = 0; i < spellMods.length; i++) {
+			spellMods[i] = parseInt(removePlus(spellMods[i]));
+            spellChatString = spellChatString.concat(" + ", spellMods[i] , " ");
+			spellRoll = spellRoll + spellMods[i];
+        };
+    };    
+    spellChatString = spellChatString.concat(" ]]");
+    sendChat(characterName,spellChatString);
+	// spell fails if spellRoll is < (10 + (2*spellLevel))
+	// disapproval chance goes up by 1 if the spell fails no matter the spell level
+	// disapproval happens if the result is <= dissapproval value, even if above spellTarget
+	var spellSuccess;
+	if ((spellRoll >= spellTarget) && (actionDieResult > disapprovalValue)) {
+		sendChat(characterName, "" + spellName + ": Success.");
+		spellSuccess = true;
+	};
+	if ((spellRoll < spellTarget) && (actionDieResult > disapprovalValue)) {
+		sendChat(characterName, "" + spellName + " has failed. Chance of disapproval has increased by 1.");
+		newDisapproval = disapprovalValue+1;
+		newDisapprovalString = newDisapproval.toString();
+		disapprovalObj.set("current", newDisapprovalString);
+		spellSuccess = false;
+	};
+	if (actionDieResult <= disapprovalValue) {
+		sendChat(characterName, "" + spellName + " has failed with a natural roll of " + actionDieResult + ". Disapproval [[" + actionDieResult + "d4+" + (Number(luckValue)*-1) + "]]!");
+		spellSuccess = false;
+	};
+	
+	// in case there is a spell duel happening, send the results to that function
+	spellDuel(characterObj, spellName, spellRoll);
+	
+	
+};
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!clericspell ") !== -1) {
+		//parse the input into two variables, oAttrib and newValue
+        var selected = msg.selected;
+		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
+        var param = msg.content.split("!clericspell ")[1];
+		var spellName = param.split("|")[0];
+        var spellLevel = param.split("|")[1];
+        var spellMod = param.split("|")[2];
+        var spellModArray = spellMod.split(",");
+				
+		if(!selected) {
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
+			return; //quit if nothing selected
+		}; 
+	
+		//loop through selected tokens
+		_.each(selected, function(obj) {
+			var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+			if (attributeObjArray === false) return;
+			clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
+		});
+		
+    };
+});
+function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat) {
+	// assign the variables for output.
+	var characterName = characterObj.get("name");	
+	var actionDieValue = attributeObjArray[0].get("current"); //attributeValue[0];
+	var deedDeedValue = attributeObjArray[1].get("current"); //attributeValue[1];
+	
+	//get the values in deedAttackArray, return current numbers if attributes and numbers if numbers
+	var attackMods = deedAttackArray;
+	for (var i = 2; i < attributeObjArray.length; i++) {
+		for (var j = 0; j < deedAttackArray.length; j++) {
+			if (attributeObjArray[i].get("name") === deedAttackArray[j]) {
+				attackMods[j] = attributeObjArray[i].get("current");
+			};			
+		};
+	};
+	
+	//get the values in deedDamageArray, return current numbers if attributes and numbers if numbers
+	var damageMods = deedDamageArray;
+	for (var i = 2; i < attributeObjArray.length; i++) {
+		for (var j = 0; j < deedDamageArray.length; j++) {
+			if (attributeObjArray[i].get("name") === deedDamageArray[j]) {
+				damageMods[j] = attributeObjArray[i].get("current");
+			};		
+		};
+	};
+	
+    // get the deed die value, as expressed as 1d7 or d5 or whatever in the current value of the attribute.
+	var d = deedDeedValue.indexOf("d")+1;
+    var deedDeedDie = parseInt(deedDeedValue.slice(d));	
+	d = actionDieValue.indexOf("d")+1;
+	var actionDieMax = parseInt(actionDieValue.slice(d));
+	var actionDieResult = randomInteger(actionDieMax);
+	var deedResult = randomInteger(deedDeedDie);
+	// check to see what kind of deed it is, and spit out the right text   
+	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
+		sendChat("Deed Die", deedResult + " ");
+	};	
+	if (deedType === deedTypeArray[1]) {
+    	if (deedResult >= 3) {
+        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
+    	} else {
+        	sendChat("Mighty Deed", deedResult + ": Fails!");
+		};
+    };	
+	if (deedType === deedTypeArray[2]) {
+		sendChat("Smite", deedResult + " ");
+	};
+	
+	//build results and send to chat
+   var attackChatString = "[[" + actionDieResult; 
+    if (deedAttackArray[0] != "None") {
+        for (var i = 0; i < attackMods.length; i++) {
+			attackMods[i] = parseInt(removePlus(attackMods[i]));
+            attackChatString = attackChatString.concat(" +", attackMods[i]);
+        };
+    };
+     attackChatString = attackChatString.concat(" +", deedResult, "]] vs. AC, for [[", deedDamageDie);
+    if (deedDamageArray[0] != "None") {
+        for (var i = 0; i < damageMods.length; i++) {
+			damageMods[i] = parseInt(removePlus(damageMods[i]));
+            attackChatString = attackChatString.concat(" +", damageMods[i]);
+        };
+    };
+    attackChatString = attackChatString.concat(" +", deedResult, "]] points of damage!");
+    sendChat(characterName,attackChatString);
+	
+	if (threat === undefined) {
+		threat = "20";
+	}
+	if (actionDieResult >= threat) {
+		sendChat(characterName, actionDieResult + "! Critical Hit!");
+	};
+};
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!deed ") !== -1) {
+		var selected = msg.selected;
+		var deedTypeArray = ["Normal", "Mighty", "Smite"];
+		var attributeArray = ["ActionDie", "DeedDie", "STR", "AGI", "LCK"];
+        var param = msg.content.split("!deed ")[1];
+        var deedDamageDie = param.split("|")[0];
+        var deedAttack = param.split("|")[1];
+        var deedAttackArray = deedAttack.split(",");
+        var deedDamage = param.split("|")[2];
+        var deedDamageArray = deedDamage.split(",");
+        var deedType = param.split("|")[3];
+		var threat = param.split("|")[4];
+			
+		if(!selected) {
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
+			return; //quit if nothing selected
+		}; 
+	
+		//loop through selected tokens
+		_.each(selected, function(obj) {
+			var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;
+			var attributeObjArray = getAttributeObjects(characterObj,attributeArray,msg.who);
+			if (attributeObjArray === false) return;
+			deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
+		});
+		
+    };
+function diceChain(characterObj,attributeObjArray,newValue) {
+	
+	//need to modify to prevent going below d3 or above d30
+	
+	
+	var diceChainArray = ["d3", "d4", "d5", "d6", "d7", "d8", "d10", "d12", "d14", "d16", "d20", "d24", "d30"];
+	var characterName = characterObj.get("name");
+	var attributeName = attributeObjArray[0].get("name");
+	var attributeValue = attributeObjArray[0].get("current");
+	
+	var diePositionChange =	parseInt(removePlus(newValue));
+	diePositionChange = parseInt(diePositionChange.toString());
+	
+	var newDiePosition = (diceChainArray.indexOf(attributeValue)) + diePositionChange;
+	var newDie = diceChainArray[newDiePosition];
+	attributeObjArray[0].set("current", newDie);
+	
+	//output
+	sendChat("API", "/w gm " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+	sendChat("API", "/w " + characterName + " changed " + attributeName + " from " + attributeValue + " to " + newDie + ".");
+};
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!dicechain ") !== -1) {
+		//parse the input into two variables, attribute and newValue
+		
+        var selected = msg.selected;
+		var Parameters = msg.content.split("!dicechain ")[1];
+		var attributeName = Parameters.split("|")[0];
+		var newValue = Parameters.split("|")[1];
+		
+		if(!selected) {
+			sendChat("API", "/w " + msg.who + " Select token and try again.");
+			return; //quit if nothing selected
+		}; 
+	
+		//loop through selected tokens
+		_.each(selected, function(obj) {
+			var characterObj = getCharacterObj(obj,msg.who);
+			if (characterObj === false) return;
+			var attributeObjArray = getAttributeObjects(characterObj,attributeName,msg.who);
+			if (attributeObjArray === false) return;
+			diceChain(characterObj,attributeObjArray,newValue);
+		});
+		
+    };
 function availableCoinCounter(attributeObjArray) {
     var availableCoinArray = [0,0,0,0,0];
 	availableCoinArray[0] += parseInt(attributeObjArray[0].get("current"));
@@ -635,7 +1096,6 @@ function availableCoinCounter(attributeObjArray) {
     availableCoinArray[4] += parseInt(attributeObjArray[4].get("current"));	
 	return availableCoinArray;
 };
-
 function moneyCounter(msg,selected,action) {
     if(!selected) {
 		sendChat("API", "/w " + msg.who + " Select token and try again.");
@@ -665,7 +1125,6 @@ function moneyCounter(msg,selected,action) {
     };
     return coinArray;
 };
-
 function formatTreasurerChatString(character,coinArray,earn) {
     var comma = "off";
     var abbrev = ["pp","ep","gp","sp","cp"];
@@ -686,7 +1145,6 @@ function formatTreasurerChatString(character,coinArray,earn) {
     chatString +=  "</strong>"; 
     return chatString; 
 };
-
 function addCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
     var character = characterObj.get("name"); 							// grab this for chat /w target 
     character = character.replace(/\s.+/,""); 
@@ -702,7 +1160,6 @@ function addCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
     sendChat("Treasurer","/w " + character + chatString);
 	sendChat("Treasurer","/w gm " + chatString);
 };
-
 function spendCoins(characterObj,availableCoinArray,coinArray,attributeObjArray) {
     var character = characterObj.get("name"); 							// grab this for chat /w target 
     character = character.replace(/\s.+/,""); 
@@ -770,14 +1227,11 @@ function spendCoins(characterObj,availableCoinArray,coinArray,attributeObjArray)
 	if (availableCoinArray[2] > 0) {attributeObjArray[2].set("current", availableCoinArray[2])} else attributeObjArray[2].set("current","0");
 	if (availableCoinArray[3] > 0) {attributeObjArray[3].set("current", availableCoinArray[3])} else attributeObjArray[3].set("current","0");
 	if (availableCoinArray[4] > 0) {attributeObjArray[4].set("current", availableCoinArray[4])} else attributeObjArray[4].set("current","0");
-
     chatString = formatTreasurerChatString(character,coinArray);
     sendChat("Treasurer","/w " + character + chatString);
     sendChat("Treasurer","/w gm " + chatString);
 };
-
 on("chat:message", function(msg) {
-
     if (msg.type === "api" && msg.who.indexOf("(GM)") !== -1 && msg.content.indexOf("!earn ") !== -1 ) { // only the GM can give out money
         var selected = msg.selected;
         var coinArray = moneyCounter(msg,selected,"!earn ");
@@ -792,7 +1246,6 @@ on("chat:message", function(msg) {
 			addCoins(characterObj,availableCoinArray,coinArray,attributeObjArray)
 		});
     };
-
     if (msg.type === "api" && msg.content.indexOf("!spend ") !== -1 ) { // anyone can spend money, if they have it
         var selected = msg.selected;
         var coinArray = moneyCounter(msg,selected,"!spend ");
@@ -807,7 +1260,6 @@ on("chat:message", function(msg) {
             spendCoins(characterObj,availableCoinArray,coinArray,attributeObjArray)
 		});
     };
-
     if (msg.type === "api" && msg.content.indexOf("!purse") !== -1 ) { // anyone can check how much money they have
         var selected = msg.selected;
         _.each(selected, function(obj) {
@@ -822,10 +1274,54 @@ on("chat:message", function(msg) {
 			sendChat("Treasurer",tmp);
 		});
     };
+});on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.who.indexOf("(GM)") !== -1 && msg.content.indexOf("!tracker") !== -1) {
+        var n = msg.content.split(" ", 2);
+        var tracker = findObjs({
+    	    _pageid: Campaign().get("playerpageid"),
+		    _type: "graphic",
+		    name: "Tracker"
+        });
+        _.each (tracker, function(obj) {
+            if (n[1] === "off") { 
+    		    obj.set({bar2_value: 0});
+                sendChat("Util","/w gm Tracker token turned " + n[1]);
+            } else {
+                obj.set({bar2_value: 1});
+                sendChat("Util","/w gm Tracker token turned " + n[1]);
+            };
+        });
+    };
+});
+
+
+on("change:graphic", function(obj, prev) { 
+    if (obj.get("name") === "Tracker" && obj.get("bar2_value") === 1) {
+        var xDif = 0;
+        var yDif = 0;
+        var unitsMoved = 0;
+        if (obj.get("left") != prev["left"] || obj.get("top") != prev["top"]) {
+            xDif = Math.abs(obj.get("left")/14 - prev["left"]/14);
+            yDif = Math.abs(obj.get("top")/14 - prev["top"]/14);
+            xDif = Math.floor(xDif);
+            yDif = Math.floor(yDif);
+        };
+        if (xDif > yDif) {
+            unitsMoved = xDif;
+        } else {
+            unitsMoved = yDif
+        };
+        var roundsTranspired = Math.floor(unitsMoved/20);
+        if (unitsMoved%20 >=10) { roundsTranspired++ };
+        if (roundsTranspired > 0) {
+    		state.timeElapsed = state.timeElapsed + roundsTranspired;
+            getLights(roundsTranspired);
+            timeElapsed();
+        }
+    };
 });
 
 function hitPoints(tokenObj,number,faces,bonus) {
-
     var characterName = tokenObj.get("name");
     
     var hitPoints = parseInt(bonus);
@@ -839,9 +1335,7 @@ function hitPoints(tokenObj,number,faces,bonus) {
 		
 	//output
 	sendChat(characterName, "/w gm " + " has " + hitPoints + " HP.");
-
 };
-
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!HP ") !== -1) {
 		//parse the input
@@ -857,7 +1351,6 @@ on("chat:message", function(msg) {
 			sendChat("", "/w gm Select token and try again.");
 			return; //quit if nothing selected
 		}; 
-
         //loop through selected tokens
         
 		_.each(selected, function(obj) {
@@ -867,120 +1360,94 @@ on("chat:message", function(msg) {
         
     };
 });
-
-function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat) {
-
-	// assign the variables for output.
-	var characterName = characterObj.get("name");	
-	var actionDieValue = attributeObjArray[0].get("current"); //attributeValue[0];
-	var deedDeedValue = attributeObjArray[1].get("current"); //attributeValue[1];
-	
-	//get the values in deedAttackArray, return current numbers if attributes and numbers if numbers
-	var attackMods = deedAttackArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedAttackArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedAttackArray[j]) {
-				attackMods[j] = attributeObjArray[i].get("current");
-			};			
-		};
+function debug(msg,v) {
+	log("--------------------------------------------------------------------------");
+	log(msg);
+	log("--------------------------------------------------------------------------");
+	for (var i = 0; i < v.length; i++) {
+		log(v[i]);
 	};
-	
-	//get the values in deedDamageArray, return current numbers if attributes and numbers if numbers
-	var damageMods = deedDamageArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedDamageArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedDamageArray[j]) {
-				damageMods[j] = attributeObjArray[i].get("current");
-			};		
-		};
-	};
-	
-
-    // get the deed die value, as expressed as 1d7 or d5 or whatever in the current value of the attribute.
-	var d = deedDeedValue.indexOf("d")+1;
-    var deedDeedDie = parseInt(deedDeedValue.slice(d));	
-	d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
-	var deedResult = randomInteger(deedDeedDie);
-
-
-	// check to see what kind of deed it is, and spit out the right text   
-	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
-		sendChat("Deed Die", deedResult + " ");
-	};	
-	if (deedType === deedTypeArray[1]) {
-    	if (deedResult >= 3) {
-        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
-    	} else {
-        	sendChat("Mighty Deed", deedResult + ": Fails!");
-		};
-    };	
-	if (deedType === deedTypeArray[2]) {
-		sendChat("Smite", deedResult + " ");
-	};
-
-	
-	//build results and send to chat
-   var attackChatString = "[[" + actionDieResult; 
-    if (deedAttackArray[0] != "None") {
-        for (var i = 0; i < attackMods.length; i++) {
-			attackMods[i] = parseInt(removePlus(attackMods[i]));
-            attackChatString = attackChatString.concat(" +", attackMods[i]);
-        };
-    };
-     attackChatString = attackChatString.concat(" +", deedResult, "]] vs. AC, for [[", deedDamageDie);
-    if (deedDamageArray[0] != "None") {
-        for (var i = 0; i < damageMods.length; i++) {
-			damageMods[i] = parseInt(removePlus(damageMods[i]));
-            attackChatString = attackChatString.concat(" +", damageMods[i]);
-        };
-    };
-    attackChatString = attackChatString.concat(" +", deedResult, "]] points of damage!");
-    sendChat(characterName,attackChatString);
-	
-	if (threat === undefined) {
-		threat = "20";
-	}
-	if (actionDieResult >= threat) {
-		sendChat(characterName, actionDieResult + "! Critical Hit!");
-	};
-
+	log("--------------------------------------------------------------------------");
+	return true;
 };
-
-
-
-on("chat:message", function(msg) {
-    if (msg.type === "api" && msg.content.indexOf("!deed ") !== -1) {
-		var selected = msg.selected;
-		var deedTypeArray = ["Normal", "Mighty", "Smite"];
-		var attributeArray = ["ActionDie", "DeedDie", "STR", "AGI", "LCK"];
-        var param = msg.content.split("!deed ")[1];
-        var deedDamageDie = param.split("|")[0];
-        var deedAttack = param.split("|")[1];
-        var deedAttackArray = deedAttack.split(",");
-        var deedDamage = param.split("|")[2];
-        var deedDamageArray = deedDamage.split(",");
-        var deedType = param.split("|")[3];
-		var threat = param.split("|")[4];
-			
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
+//---------------------------------------------------------------------------------------------------------------------------------------------
+function removePlus(string) {
+	// takes a string and removes the + to return the integer after it
+	// useful when attribute values +2 and you only need the integer associated.
+	var p = string.indexOf("+");
+	var n = string.substr(p+1);
+	return n;
+};
+//---------------------------------------------------------------------------------------------------------------------------------------------
+function getAttributeObjects(characterObj,attributeArray,who) {
+	// can pass array of attribute strings or a single attribute string	along with an associated character
+	// returns those attributes as an object array or returns false if they do not exist on the passed character.
 	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj,attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
-		});
+	
+	// get the passed attribute name array from the character object and test if they are defined
+	
+	if (characterObj != undefined ) {
+		var attributeObjArray = new Array();
+		if (!(attributeArray instanceof Array)) {
+			attributeArray = attributeArray.split();
+		};
+		for (var i = 0; i < attributeArray.length; i++) {
+			attributeObjArray[i] = findObjs({_type: "attribute", name: attributeArray[i], _characterid: characterObj.id})[0];
+			if (attributeObjArray[i] === undefined) {
+				sendChat("API","/w " + who + " Selected character requires attribute: " + attributeArray[i] + " ");
+			};
+		};		
+	};
+	if (attributeObjArray.indexOf(undefined) !== -1) return false;
+	//loop through attributeArray and names of attributes to make sure they all match and get their values if they are valid. 
+	//make sure none of the values are empty
+	var attributeValue = new Array();	
+	var j = 0;
+	for (var i = 0; i < attributeArray.length; i++) {
+			attributeValue[i] = attributeObjArray[i].get("current");
+			if (attributeValue[i] === "") {
+				sendChat("API","/w " + who + " " + attributeArray[i] + " is empty.");
+				j++;
+			};
+	};
+	if (j !== 0) return false;
+	return attributeObjArray;
+};
+//---------------------------------------------------------------------------------------------------------------------------------------------
+function getCharacterObj(obj,who) {
+	
+	//send any object and returns the associated character object
+	//returns character object for attribute, token/graphic, and ability, and... character
+	
+	var objType = obj._type;
+	
+	if ((objType != "attribute") && (objType != "graphic") && (objType != "character")) {
+		sendChat("API","/w " + who + " cannot be associated with a character.");
+		return false;
+	} 
+	if ((objType === "attribute") || (objType === "ability")) {
+		var att = getObj(objType, obj._id);
+		if (att.get("_characterid") != "") {
+			var characterObj = getObj("character", att.get("_characterid"));
+		};
+	};
+	
+	if (objType === "graphic") { 
+		var tok = getObj("graphic", obj._id);
+    	if (tok.get("represents") != "") {
+       		var characterObj = getObj("character", tok.get("represents"));
+    	} else {
+			sendChat("API","/w " + who + " Selected token does not represent a character.");
+			return false;
+    	};
+	};
 		
-    };
-});
-
+	if (objType === "character") {
+		var characterObj = getObj("character", obj._id);
+	}
+	return characterObj;
+};
+//---------------------------------------------------------------------------------------------------------------------------------------------
 function debugLog(msg) {
     //debug variables
 	var v = [];
@@ -993,18 +1460,13 @@ function debugLog(msg) {
 	v.push(["state.dcc.spellDuel.defenderRollArray", state.dcc.spellDuel.defenderRollArray]); 
 	
 	//end debug variables
-
 	debug(msg,v);
 };
-
 function spellDuel(characterObj, spellName, spellRoll) {
-
     debugLog("spellDuel");
-
     var characterName = characterObj.get("name");
 	
 	// check if the attacker spell has already been cast or not.
-
 	if (state.dcc.spellDuel.active === false) {
 		
 		state.dcc.spellDuel.attackerObj = characterObj;
@@ -1012,7 +1474,6 @@ function spellDuel(characterObj, spellName, spellRoll) {
 		state.dcc.spellDuel.attackerRoll = spellRoll;
 	
 		debugLog("duel inactive. passing ball to the last spellcaster");
-
 		return;
 	};
 	
@@ -1026,8 +1487,6 @@ function spellDuel(characterObj, spellName, spellRoll) {
 			characterRole = "defender";
 		};
 	};
-
-
 	if (state.dcc.spellDuel.active === true) {
 		
 		if (characterRole === "attacker") {
@@ -1070,10 +1529,7 @@ function spellDuel(characterObj, spellName, spellRoll) {
 	
 	return;
 };
-
-
 function counterSpell(defenderToken, attackerToken) {
-
 	debugLog("counterSpell");
 	
 	log(defenderToken);
@@ -1190,15 +1646,10 @@ function counterSpell(defenderToken, attackerToken) {
 	};
 	
 	debugLog("end counterspell function. nothing happened.");
-
 	return;	
 };
-
-
 function resolveSpellDuel() {
-
 	debugLog("begin resolveSpellDuel.");
-
 	if (state.dcc.spellDuel.active === false) {
 		sendChat("Spell Duel", "/w gm no duel active.");
 		return;
@@ -1211,7 +1662,6 @@ function resolveSpellDuel() {
 			return;
 		};
 	};
-
 	//declare variables
 	var spellDuelChain = [0, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8, 10, 10, 12, 12, 14, 16];
 	var spellDuelScore = [];
@@ -1239,7 +1689,6 @@ function resolveSpellDuel() {
 		name: spellDuelMomentumName,
 		_characterid: state.dcc.spellDuel.attackerObj.id
 	}, {caseInsensitive: true})[0];
-
 	log(attackerMomentumObj);
 	
 	if (attackerMomentumObj === undefined) {
@@ -1258,14 +1707,11 @@ function resolveSpellDuel() {
 		}, {caseInsensitive: true})[0];
 		log(attackerMomentumObj);
 	};
-
 	var attackerMomentum = parseInt(attackerMomentumObj.get("current"));
 	
 	log(attackerMomentum);
-
 	// main loop to go through list of counterspellers vs attacker
 	for (var i = 0; i < state.dcc.spellDuel.defenderObjArray.length; i++) {
-
 		defenderName[i] = state.dcc.spellDuel.defenderObjArray[i].get("name");
 		log("defenderName");
 		log(defenderName[i]);
@@ -1295,13 +1741,11 @@ function resolveSpellDuel() {
 			}, {caseInsensitive: true})[0];
 			log(defenderMomentumObj[i]);
 		};
-
 		defenderMomentum[i] = parseInt(defenderMomentumObj[i].get("current"));
 		
 		log(defenderMomentum[i]);
 		
 		momentumDiff[i] = attackerMomentum - defenderMomentum[i];		
-
 		// spellDuelScore will be the difference between the attacker and the defender. negative result defender wins, positive, attacker wins, equal is a Phlogiston Disturbance
 		spellDuelScore[i] = state.dcc.spellDuel.attackerRoll - state.dcc.spellDuel.defenderRollArray[i];
 		log(spellDuelScore[i]);
@@ -1309,7 +1753,6 @@ function resolveSpellDuel() {
 		spellDuelDie[i] = spellDuelChain[Math.min(Math.abs(spellDuelScore[i]),16)];
 		log(spellDuelDie[i]);
 		
-
 		//Defender High
 		if (spellDuelScore[i] < 0) {
 		
@@ -1318,7 +1761,6 @@ function resolveSpellDuel() {
 			// add +1 momentum to the defender
 			newMomentum[i] = defenderMomentum[i]+1;
 			defenderMomentumObj[i].set("current", newMomentum[i].toString());
-
 			momentumDiff[i] = attackerMomentum - defenderMomentum[i];
 	
 			if ((spellDuelRoll[i]-momentumDiff[i]) <= 1) {
@@ -1365,7 +1807,6 @@ function resolveSpellDuel() {
 				spellDuelResult[i] = "10+: Reflect and overwhelm: " + defenderName[i] + "\'s spell takes effect at normal result and " + attackerName + "\'s spell reflects back on him at the spell check result rolled.";
 			};	
 		};
-
 		// Attacker High
 		if (spellDuelScore[i] > 0) {
 		
@@ -1374,7 +1815,6 @@ function resolveSpellDuel() {
 			// add +1 momentum to the attacker
 			newMomentum[i] = attackerMomentum+1;
 			attackerMomentumObj.set("current", newMomentum[i].toString());
-
 			momentumDiff[i] = attackerMomentum - defenderMomentum[i];
 			
 			if ((spellDuelRoll[i]-momentumDiff[i]) <= 1) {
@@ -1420,7 +1860,6 @@ function resolveSpellDuel() {
 				spellDuelResult[i] = "10+: Reflect and overwhelm: " + attackerName + "\'s spell takes effect at normal spell check result and " + defenderName[i] + "\'s spell check is reflected back on him at normal spell check. \<br\>";
 			};
 		};
-
 		//Phlogiston Disturbance Table
 		if (spellDuelScore[i] === 0) {
 			
@@ -1515,7 +1954,6 @@ function resolveSpellDuel() {
 			};
 		};
 		
-
 		sendChat("Spell Duel", " " + spellDuelResult[i] + "");
 		
 		debugLog("spell Duel resolution.");
@@ -1531,14 +1969,9 @@ function resolveSpellDuel() {
 	state.dcc.spellDuel.defenderObjArray = [];
 	state.dcc.spellDuel.defenderSpellArray = [];
 	state.dcc.spellDuel.defenderRollArray = [];
-
 	debugLog("reset spell duel.");
-
 	return;
-
 };
-
-
 function spellDuelReset() {
 	//find all characters with momentum attribute and set to 10.
 	var spellDuelMomentumName = "Momentum";
@@ -1551,7 +1984,6 @@ function spellDuelReset() {
 	_.each(momentumCharacters, function(obj) {    
 		obj.set("current", "10");
 	});
-
 	//reset all spell duel variables for this round of the spell duel
 	state.dcc.spellDuel = {};
 	state.dcc.spellDuel.active = false;
@@ -1567,8 +1999,6 @@ function spellDuelReset() {
 	debugLog("reset spell duel.");
 	
 };
-
-
 on("chat:message", function(msg) {	 
 	if (msg.type === "api" && msg.content.indexOf("!counterspell") !== -1) {
         var param = msg.content.split("!counterspell ")[1];
@@ -1580,11 +2010,8 @@ on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!resolvespellduel") !== -1) resolveSpellDuel();
 	
 	if (msg.type === "api" && msg.content.indexOf("!debugspellduel") !== -1) debugSpellDuel(msg);
-
 	if (msg.type === "api" && msg.content.indexOf("!resetspellduel") !== -1) spellDuelReset();
-
 });
-
 // check for existence of state.dcc.spellDuel.* properties -- create  if they don't exist
 on("ready", function() {
 	// bh: incomplete list so far	
@@ -1613,103 +2040,7 @@ on("ready", function() {
 	
 	
 	
-function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
-
-	//finally assign the variables for output.	
-	var characterName = characterObj.get("name");	
-	var actionDieValue = attributeObjArray[0].get("current");
-	var disapprovalObj = attributeObjArray[1];
-	var disapprovalAtt = attributeObjArray[1].get("name")//attributeArray[1];
-	var disapprovalValue = Number(attributeObjArray[1].get("current"));
-	var luckValue = Number(attributeObjArray[4].get("current"));
-	var spellTarget = 10+(2*Number(spellLevel));
-	
-    // get the action die max value and die roll, as expressed as 1d20 or d5 or whatever in the current value of the attribute.
-	var d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
-	var spellRoll = Number(actionDieResult); 
-
-	//get the values in spellModArray, return current numbers if attributes and numbers if numbers
-	var spellMods = spellModArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") === spellModArray[j]) {
-				spellMods[j] = attributeObjArray[i].get("current");
-			};			
-		};
-	};
-		
-	//build results and send to chat
-	var spellChatString = spellName + ": [[" + actionDieResult; 
-    if (spellModArray[0] != "None") {
-        for (var i = 0; i < spellMods.length; i++) {
-			spellMods[i] = parseInt(removePlus(spellMods[i]));
-            spellChatString = spellChatString.concat(" + ", spellMods[i] , " ");
-			spellRoll = spellRoll + spellMods[i];
-        };
-    };    
-    spellChatString = spellChatString.concat(" ]]");
-    sendChat(characterName,spellChatString);
-
-
-	// spell fails if spellRoll is < (10 + (2*spellLevel))
-	// disapproval chance goes up by 1 if the spell fails no matter the spell level
-	// disapproval happens if the result is <= dissapproval value, even if above spellTarget
-	var spellSuccess;
-	if ((spellRoll >= spellTarget) && (actionDieResult > disapprovalValue)) {
-		sendChat(characterName, "" + spellName + ": Success.");
-		spellSuccess = true;
-	};
-	if ((spellRoll < spellTarget) && (actionDieResult > disapprovalValue)) {
-		sendChat(characterName, "" + spellName + " has failed. Chance of disapproval has increased by 1.");
-		newDisapproval = disapprovalValue+1;
-		newDisapprovalString = newDisapproval.toString();
-		disapprovalObj.set("current", newDisapprovalString);
-		spellSuccess = false;
-	};
-	if (actionDieResult <= disapprovalValue) {
-		sendChat(characterName, "" + spellName + " has failed with a natural roll of " + actionDieResult + ". Disapproval [[" + actionDieResult + "d4+" + (Number(luckValue)*-1) + "]]!");
-		spellSuccess = false;
-	};
-	
-	// in case there is a spell duel happening, send the results to that function
-	spellDuel(characterObj, spellName, spellRoll);
-	
-	
-};
-
-
-on("chat:message", function(msg) {
-    if (msg.type === "api" && msg.content.indexOf("!clericspell ") !== -1) {
-		//parse the input into two variables, oAttrib and newValue
-        var selected = msg.selected;
-		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
-        var param = msg.content.split("!clericspell ")[1];
-		var spellName = param.split("|")[0];
-        var spellLevel = param.split("|")[1];
-        var spellMod = param.split("|")[2];
-        var spellModArray = spellMod.split(",");
-				
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
-		});
-		
-    };
-});
-
 function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
-
 	//finally assign the variables for output.	
 	var characterName = characterObj.get("name");	
 	var actionDieValue = attributeObjArray[0].get("current");
@@ -1720,7 +2051,6 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	var actionDieMax = parseInt(actionDieValue.slice(d));
 	var actionDieResult = randomInteger(actionDieMax);
 	var spellRoll = Number(actionDieResult); 
-
 	//get the values in spellModArray, return current numbers if attributes and numbers if numbers
 	var spellMods = spellModArray;
 	for (var i = 1; i < attributeObjArray.length; i++) {
@@ -1747,7 +2077,6 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
     };    
     spellChatString = spellChatString.concat(" ]]");
 	sendChat(characterName,spellChatString);
-
 	// spell fails if spellRoll is < (10 + (2*spellLevel))
 	// 1 = Lost, failure, and worse!
 	// 2-11 = Lost. Failure.
@@ -1779,8 +2108,6 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	
 	
 };
-
-
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!wizardspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
@@ -1799,9 +2126,9 @@ on("chat:message", function(msg) {
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
 			if (attributeObjArray === false) return;
 			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});
