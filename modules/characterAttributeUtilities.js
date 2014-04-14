@@ -148,7 +148,7 @@ function returnAbilityModifier (abilityScore) {
     }; 
     tmp = abilityScoreModifier; log(tmp);
     return abilityScoreModifier;
-}
+};
 
 function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
 	var modifierName; 
@@ -279,3 +279,5 @@ on("ready", function() {
         tmp = "Created state.dcc.abilityScoreArray: " + state.dcc.abilityScoreArray; log(tmp);
     };
 });
+
+

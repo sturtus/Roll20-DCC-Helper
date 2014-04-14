@@ -450,3 +450,5 @@ on("change:graphic:bar2_value", function(obj) {
     };
     
 });
+
+

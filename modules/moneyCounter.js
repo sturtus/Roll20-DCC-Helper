@@ -257,3 +257,4 @@ on("chat:message", function(msg) {
         tmp = "| /!purse"; log(tmp);
     };
 });
+
