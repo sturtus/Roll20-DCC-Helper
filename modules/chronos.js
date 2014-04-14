@@ -5,6 +5,8 @@
 	!chronos #y,#m,#d,#h,#n -xyz    parameters (not implemented yet)
 	
 */
+
+
 on("ready", function() {
     if (!state.chronos) {
         state.chronos = {}; 
@@ -19,7 +21,6 @@ on("ready", function() {
     if (!state.chronos.hours) {state.chronos.hours = 0;};
     if (!state.chronos.minutes) {state.chronos.minutes = 0;};
     if (!state.chronos.weekday) {state.chronos.weekday = 0;};
-	};
 });
 
 var month = [['January',31],['February',28],["March",31],['April',30],['May',31],['June',30],['July',31],['August',31],['September',30],['October',31],['November',30],['December',31]];
