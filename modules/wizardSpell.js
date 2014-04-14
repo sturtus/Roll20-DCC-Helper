@@ -114,9 +114,9 @@ on("chat:message", function(msg) {
 	
 		//loop through selected tokens
 		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj);
+			var characterObj = getCharacterObj(obj,msg.who);
 			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray);
+			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
 			if (attributeObjArray === false) return;
 			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
 		});
