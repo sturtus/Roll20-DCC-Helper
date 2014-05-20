@@ -45,35 +45,10 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	var actionDieValue = attributeObjArray[0].get("current"); //attributeValue[0];
 	var deedDeedValue = attributeObjArray[1].get("current"); //attributeValue[1];
 	
-	//get the values in deedAttackArray, return current numbers if attributes and numbers if numbers
-	var attackMods = deedAttackArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedAttackArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedAttackArray[j]) {
-				attackMods[j] = attributeObjArray[i].get("current");
-			};			
-		};
-	};
-	
-	//get the values in deedDamageArray, return current numbers if attributes and numbers if numbers
-	var damageMods = deedDamageArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedDamageArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedDamageArray[j]) {
-				damageMods[j] = attributeObjArray[i].get("current");
-			};		
-		};
-	};
-	
-
     // get the deed die value, as expressed as 1d7 or d5 or whatever in the current value of the attribute.
 	var d = deedDeedValue.indexOf("d")+1;
     var deedDeedDie = parseInt(deedDeedValue.slice(d));	
-	d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
 	var deedResult = randomInteger(deedDeedDie);
-
 
 	// check to see what kind of deed it is, and spit out the right text   
 	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
@@ -89,42 +64,53 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	if (deedType === deedTypeArray[2]) {
 		sendChat("Smite", deedResult + " ");
 	};
-
 	
-	//build results and send to chat
-   var attackChatString = "[[" + actionDieResult; 
-    if (deedAttackArray[0] != "None") {
-        for (var i = 0; i < attackMods.length; i++) {
-			attackMods[i] = parseInt(removePlus(attackMods[i]));
-            attackChatString = attackChatString.concat(" +", attackMods[i]);
-        };
+	//build attack results to send to chat function
+   	var attackChatString = "/r " + actionDieValue; 
+    for (var i = 0; i < deedAttackArray.length; i++) {
+		deedAttackArray[i] = removePlus(deedAttackArray[i]);
+        attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
     };
-     attackChatString = attackChatString.concat(" +", deedResult, "]] vs. AC, for [[", deedDamageDie);
-    if (deedDamageArray[0] != "None") {
-        for (var i = 0; i < damageMods.length; i++) {
-			damageMods[i] = parseInt(removePlus(damageMods[i]));
-            attackChatString = attackChatString.concat(" +", damageMods[i]);
-        };
-    };
-    attackChatString = attackChatString.concat(" +", deedResult, "]] points of damage!");
-    sendChat(characterName,attackChatString);
 	
-	if (threat === undefined) {
-		threat = "20";
-	}
-	if (actionDieResult >= threat) {
-		sendChat(characterName, actionDieResult + "! Critical Hit!");
-	};
+	attackChatString = attackChatString.concat(" +", deedResult);
 
+	sendChat(characterName,attackChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var attackRoll = rollresult.total;
+		var actionDieResult = rollresult.rolls[0].results[0].v;
+		sendChat(characterName, rollResultOutput + " to attack!");
+		if (threat === undefined) {
+			threat = "20";
+		}
+		if (actionDieResult >= threat) {
+			sendChat(characterName, "Critical Hit!");
+		};
+	});
+
+    //build damage results to send to chat function
+	var dmgChatString = "/r " + deedDamageDie;
+    for (var i = 0; i < deedDamageArray.length; i++) {
+		deedDamageArray[i] = removePlus(deedDamageArray[i]);
+        dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+    };
+
+    dmgChatString = dmgChatString.concat(" +", deedResult);
+	
+	sendChat(characterName,dmgChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var damageRoll = rollresult.total;
+		sendChat(characterName, rollResultOutput + " damage!");
+	});
 };
-
 
 
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!deed ") !== -1) {
 		var selected = msg.selected;
 		var deedTypeArray = ["Normal", "Mighty", "Smite"];
-		var attributeArray = ["ActionDie", "DeedDie", "STR", "AGI", "LCK"];
+		var attributeArray = ["ActionDie", "DeedDie"];
         var param = msg.content.split("!deed ")[1];
         var deedDamageDie = param.split("|")[0];
         var deedAttack = param.split("|")[1];
