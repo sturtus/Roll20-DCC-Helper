@@ -11,7 +11,7 @@
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being case (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
-		roll. Can be mix of character attributes (INT,Level) as well as 
+		roll. Can be mix of character attributes (@{INT},@{Level}) as well as 
 		numeric modifiers (+1). 
 
 	
@@ -19,7 +19,7 @@
 	~~~~~~~~
 	Suppy is a 1st level cleric with the blessing spell, he casts it:
 	
-	!clericspell Blessing|1|PER,Level
+	!clericspell Blessing|1|@{PER},@{Level}
 	
 	This will roll the spell at the character's current ActionDie attribute, add the 
 	modifiers listed, check for spell success, increment disapproval if necessary, 
@@ -40,12 +40,12 @@ function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 		
 	//build results and send to chat
 	var rollChatString = "/r " + actionDieValue; 
-        for (var i = 0; i < spellModArray.length; i++) {
-			if (spellModArray[i].indexOf("+") >= -1) {
-				spellModArray[i] = removePlus(spellModArray[i]);
-			};
-            rollChatString = rollChatString.concat(" + ", spellModArray[i] , " ");
-        };   
+    for (var i = 0; i < spellModArray.length; i++) {
+		if (spellModArray[i].indexOf("+") >= -1) {
+			spellModArray[i] = removePlus(spellModArray[i]);
+		};
+        rollChatString = rollChatString.concat(" + ", spellModArray[i] , " ");
+    };   
 	
 	sendChat(characterName,rollChatString, function(ops) {
 		var rollresult = JSON.parse(ops[0].content);

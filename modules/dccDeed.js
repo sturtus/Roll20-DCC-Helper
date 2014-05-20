@@ -6,8 +6,8 @@
 	
 	dmgDie: the die to roll for weapon damage
 	atk and dmg: commas-separated lists of modifiers to apply to attack and damage 
-		rolls, respectively. Can be mix of character attributes (STR,LCK) as well as 
-		numeric modifiers (+1). Use "None" if none present.
+		rolls, respectively. Can be mix of character attributes (@{STR}, @{LCK}) as well as 
+		numeric modifiers (+1). 
 	Normal|Mighty|Smite (optional): the type of deed to perform. 
 	crit: lower end of crit range, for Warriors and other fighting types. 
 
@@ -19,14 +19,15 @@
 	~~~~~~~~~
 	Blarmy is a 2nd level warrior with a longsword +1, his lucky weapon. He performs a Mighty Deed:
 	
-	!deed 1d8|STR,LCK,+1|STR,+1|Mighty|18
+	!deed 1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
 	
 	This would perform a Mighty Deed of Arms using the character's attributes: ActionDie,
 	DeedDie, STR, LCK. The +1 is in attack and damage for the +1 weapon. It will roll the 
 	attack, the deed die, determine deed success, and determine damage and crit success. 
-	It pulls the STR and LCK modifiers and applies them appropriately.
+	It pulls the STR and LCK modifiers and applies them appropriately using built in macro
+	processing.
 	
-	!deed 1d6|AGI|None
+	!deed 1d6|@{AGI}
 	
 	This would perform an attack and damage modified by the character's DeedDie attribute
 	using the character's ActionDie as the attack roll. No check for Mighty Deed success 
