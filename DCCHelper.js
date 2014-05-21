@@ -55,7 +55,7 @@
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being case (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
-		roll. Can be mix of character attributes (INT,Level) as well as 
+		roll. Can be mix of character attributes (@{INT},@{Level}) as well as 
 		numeric modifiers (+1). 
 
 	
@@ -63,7 +63,7 @@
 	~~~~~~~~
 	Suppy is a 1st level cleric with the blessing spell, he casts it:
 	
-	!clericspell Blessing|1|PER,Level
+	!clericspell Blessing|1|@{PER},@{Level}
 	
 	This will roll the spell at the character's current ActionDie attribute, add the 
 	modifiers listed, check for spell success, increment disapproval if necessary, 
@@ -79,8 +79,8 @@
 	
 	dmgDie: the die to roll for weapon damage
 	atk and dmg: commas-separated lists of modifiers to apply to attack and damage 
-		rolls, respectively. Can be mix of character attributes (STR,LCK) as well as 
-		numeric modifiers (+1). Use "None" if none present.
+		rolls, respectively. Can be mix of character attributes (@{STR}, @{LCK}) as well as 
+		numeric modifiers (+1). 
 	Normal|Mighty|Smite (optional): the type of deed to perform. 
 	crit: lower end of crit range, for Warriors and other fighting types. 
 
@@ -92,14 +92,15 @@
 	~~~~~~~~~
 	Blarmy is a 2nd level warrior with a longsword +1, his lucky weapon. He performs a Mighty Deed:
 	
-	!deed 1d8|STR,LCK,+1|STR,+1|Mighty|18
+	!deed 1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
 	
 	This would perform a Mighty Deed of Arms using the character's attributes: ActionDie,
 	DeedDie, STR, LCK. The +1 is in attack and damage for the +1 weapon. It will roll the 
 	attack, the deed die, determine deed success, and determine damage and crit success. 
-	It pulls the STR and LCK modifiers and applies them appropriately.
+	It pulls the STR and LCK modifiers and applies them appropriately using built in macro
+	processing.
 	
-	!deed 1d6|AGI|None
+	!deed 1d6|@{AGI}
 	
 	This would perform an attack and damage modified by the character's DeedDie attribute
 	using the character's ActionDie as the attack roll. No check for Mighty Deed success 
@@ -170,7 +171,7 @@
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being cast (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
-		roll. Can be mix of character attributes (INT,Level) as well as 
+		roll. Can be mix of character attributes (@{INT},@{Level}) as well as 
 		numeric modifiers (+1). 
 	
 	Example:
@@ -178,7 +179,7 @@
 	Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
 	that gives him a +1 to cast the spell
 
-	!wizardspell Animal Summoning|1|INT, Level, +1
+	!wizardspell Animal Summoning|1|@{INT}, @{Level}, +1
 
 */
 
@@ -416,62 +417,55 @@ function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	var disapprovalObj = attributeObjArray[1];
 	var disapprovalAtt = attributeObjArray[1].get("name")//attributeArray[1];
 	var disapprovalValue = Number(attributeObjArray[1].get("current"));
-	var luckValue = Number(attributeObjArray[4].get("current"));
+	var luckValue = Number(attributeObjArray[2].get("current"));
 	var spellTarget = 10+(2*Number(spellLevel));
-	
-    // get the action die max value and die roll, as expressed as 1d20 or d5 or whatever in the current value of the attribute.
-	var d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
-	var spellRoll = Number(actionDieResult); 
-
-	//get the values in spellModArray, return current numbers if attributes and numbers if numbers
-	var spellMods = spellModArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") === spellModArray[j]) {
-				spellMods[j] = attributeObjArray[i].get("current");
-			};			
-		};
-	};
 		
 	//build results and send to chat
-	var spellChatString = spellName + ": [[" + actionDieResult; 
-    if (spellModArray[0] != "None") {
-        for (var i = 0; i < spellMods.length; i++) {
-			spellMods[i] = parseInt(removePlus(spellMods[i]));
-            spellChatString = spellChatString.concat(" + ", spellMods[i] , " ");
-			spellRoll = spellRoll + spellMods[i];
-        };
-    };    
-    spellChatString = spellChatString.concat(" ]]");
-    sendChat(characterName,spellChatString);
+	var rollChatString = "/r " + actionDieValue; 
+    for (var i = 0; i < spellModArray.length; i++) {
+		if (spellModArray[i].indexOf("+") >= -1) {
+			spellModArray[i] = removePlus(spellModArray[i]);
+		};
+        rollChatString = rollChatString.concat(" + ", spellModArray[i] , " ");
+    };   
+	
+	sendChat(characterName,rollChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var spellRoll = rollresult.total;
+		var actionDieResult = rollresult.rolls[0].results[0].v;
+		var spellChatString = spellName + ": ";
+		
+		// spell fails if spellRoll is < (10 + (2*spellLevel))
+		// disapproval chance goes up by 1 if the spell fails no matter the spell level
+		// disapproval happens if the result is <= dissapproval value, even if above spellTarget
+		
+		if ((spellRoll >= spellTarget) && (actionDieResult > disapprovalValue)) {
+			spellChatString = spellChatString.concat("Success. ");
+	
+		};
+		if ((spellRoll < spellTarget) && (actionDieResult > disapprovalValue)) {
+			spellChatString = spellChatString.concat("Failed. Chance of disapproval has increased by 1. ");
+			newDisapproval = disapprovalValue+1;
+			newDisapprovalString = newDisapproval.toString();
+			disapprovalObj.set("current", newDisapprovalString);
+	
+		};
+		if (actionDieResult <= disapprovalValue) {
+			spellChatString = spellChatString.concat("Failed with a natural roll of ", actionDieResult, ". Disapproval Roll is [[", actionDieResult, "d4+", (Number(luckValue)*-1), "]]! ");
+	
+		};
+		
+		spellChatString = spellChatString.concat("Results: ", rollResultOutput);
+		
+		//send rollresult as formatted chat string
+		sendChat(characterName, spellChatString);
+		
+		// in case there is a spell duel happening, send the results to that function
+		spellDuel(characterObj, spellName, spellRoll);
+		
+	});
 
-
-	// spell fails if spellRoll is < (10 + (2*spellLevel))
-	// disapproval chance goes up by 1 if the spell fails no matter the spell level
-	// disapproval happens if the result is <= dissapproval value, even if above spellTarget
-	var spellSuccess;
-	if ((spellRoll >= spellTarget) && (actionDieResult > disapprovalValue)) {
-		sendChat(characterName, "" + spellName + ": Success.");
-		spellSuccess = true;
-	};
-	if ((spellRoll < spellTarget) && (actionDieResult > disapprovalValue)) {
-		sendChat(characterName, "" + spellName + " has failed. Chance of disapproval has increased by 1.");
-		newDisapproval = disapprovalValue+1;
-		newDisapprovalString = newDisapproval.toString();
-		disapprovalObj.set("current", newDisapprovalString);
-		spellSuccess = false;
-	};
-	if (actionDieResult <= disapprovalValue) {
-		sendChat(characterName, "" + spellName + " has failed with a natural roll of " + actionDieResult + ". Disapproval [[" + actionDieResult + "d4+" + (Number(luckValue)*-1) + "]]!");
-		spellSuccess = false;
-	};
-	
-	// in case there is a spell duel happening, send the results to that function
-	spellDuel(characterObj, spellName, spellRoll);
-	
-	
 };
 
 
@@ -479,7 +473,7 @@ on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!clericspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
-		var attributeArray = ["ActionDie", "Disapproval", "Level", "PER", "LCK"];
+		var attributeArray = ["ActionDie", "Disapproval", "LCK"];
         var param = msg.content.split("!clericspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];
@@ -512,35 +506,10 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	var actionDieValue = attributeObjArray[0].get("current"); //attributeValue[0];
 	var deedDeedValue = attributeObjArray[1].get("current"); //attributeValue[1];
 	
-	//get the values in deedAttackArray, return current numbers if attributes and numbers if numbers
-	var attackMods = deedAttackArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedAttackArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedAttackArray[j]) {
-				attackMods[j] = attributeObjArray[i].get("current");
-			};			
-		};
-	};
-	
-	//get the values in deedDamageArray, return current numbers if attributes and numbers if numbers
-	var damageMods = deedDamageArray;
-	for (var i = 2; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < deedDamageArray.length; j++) {
-			if (attributeObjArray[i].get("name") === deedDamageArray[j]) {
-				damageMods[j] = attributeObjArray[i].get("current");
-			};		
-		};
-	};
-	
-
     // get the deed die value, as expressed as 1d7 or d5 or whatever in the current value of the attribute.
 	var d = deedDeedValue.indexOf("d")+1;
     var deedDeedDie = parseInt(deedDeedValue.slice(d));	
-	d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
 	var deedResult = randomInteger(deedDeedDie);
-
 
 	// check to see what kind of deed it is, and spit out the right text   
 	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
@@ -556,42 +525,53 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	if (deedType === deedTypeArray[2]) {
 		sendChat("Smite", deedResult + " ");
 	};
-
 	
-	//build results and send to chat
-   var attackChatString = "[[" + actionDieResult; 
-    if (deedAttackArray[0] != "None") {
-        for (var i = 0; i < attackMods.length; i++) {
-			attackMods[i] = parseInt(removePlus(attackMods[i]));
-            attackChatString = attackChatString.concat(" +", attackMods[i]);
-        };
+	//build attack results to send to chat function
+   	var attackChatString = "/r " + actionDieValue; 
+    for (var i = 0; i < deedAttackArray.length; i++) {
+		deedAttackArray[i] = removePlus(deedAttackArray[i]);
+        attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
     };
-     attackChatString = attackChatString.concat(" +", deedResult, "]] vs. AC, for [[", deedDamageDie);
-    if (deedDamageArray[0] != "None") {
-        for (var i = 0; i < damageMods.length; i++) {
-			damageMods[i] = parseInt(removePlus(damageMods[i]));
-            attackChatString = attackChatString.concat(" +", damageMods[i]);
-        };
-    };
-    attackChatString = attackChatString.concat(" +", deedResult, "]] points of damage!");
-    sendChat(characterName,attackChatString);
 	
-	if (threat === undefined) {
-		threat = "20";
-	}
-	if (actionDieResult >= threat) {
-		sendChat(characterName, actionDieResult + "! Critical Hit!");
-	};
+	attackChatString = attackChatString.concat(" +", deedResult);
 
+	sendChat(characterName,attackChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var attackRoll = rollresult.total;
+		var actionDieResult = rollresult.rolls[0].results[0].v;
+		sendChat(characterName, rollResultOutput + " to attack!");
+		if (threat === undefined) {
+			threat = "20";
+		}
+		if (actionDieResult >= threat) {
+			sendChat(characterName, "Critical Hit!");
+		};
+	});
+
+    //build damage results to send to chat function
+	var dmgChatString = "/r " + deedDamageDie;
+    for (var i = 0; i < deedDamageArray.length; i++) {
+		deedDamageArray[i] = removePlus(deedDamageArray[i]);
+        dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+    };
+
+    dmgChatString = dmgChatString.concat(" +", deedResult);
+	
+	sendChat(characterName,dmgChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var damageRoll = rollresult.total;
+		sendChat(characterName, rollResultOutput + " damage!");
+	});
 };
-
 
 
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!deed ") !== -1) {
 		var selected = msg.selected;
 		var deedTypeArray = ["Normal", "Mighty", "Smite"];
-		var attributeArray = ["ActionDie", "DeedDie", "STR", "AGI", "LCK"];
+		var attributeArray = ["ActionDie", "DeedDie"];
         var param = msg.content.split("!deed ")[1];
         var deedDamageDie = param.split("|")[0];
         var deedAttack = param.split("|")[1];
@@ -1311,70 +1291,54 @@ function wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spe
 	var characterName = characterObj.get("name");	
 	var actionDieValue = attributeObjArray[0].get("current");
 	var spellTarget = 10+(2*Number(spellLevel));
-	
-    // get the action die max value and die roll, as expressed as 1d20 or d5 or whatever in the current value of the attribute.
-	var d = actionDieValue.indexOf("d")+1;
-	var actionDieMax = parseInt(actionDieValue.slice(d));
-	var actionDieResult = randomInteger(actionDieMax);
-	var spellRoll = Number(actionDieResult); 
 
-	//get the values in spellModArray, return current numbers if attributes and numbers if numbers
-	var spellMods = spellModArray;
-	for (var i = 1; i < attributeObjArray.length; i++) {
-		for (var j = 0; j < spellMods.length; j++) {
-			if (attributeObjArray[i].get("name") === spellModArray[j]) {
-				// check if this is caster level, in which case no need to get the value off the ability score table
-				if (spellModArray[j] === attributeObjArray[1].get("name"))  {
-					spellMods[j] = Number(attributeObjArray[1].get("current"));
-				} else {
-				spellMods[j] = attributeObjArray[i].get("current");
-				};
-			};			
-		};
-	};
-			
 	//build results and send to chat
-	var spellChatString = spellName + ": [[" + actionDieResult; 
-    if (spellModArray[0] != "None") {
-        for (var i = 0; i < spellMods.length; i++) {
-			spellMods[i] = parseInt(removePlus(spellMods[i]));
-            spellChatString = spellChatString.concat(" + ", spellMods[i] , " ");
-			spellRoll = spellRoll + spellMods[i];
-        };
-    };    
-    spellChatString = spellChatString.concat(" ]]");
-	sendChat(characterName,spellChatString);
+	var rollChatString = "/r " + actionDieValue; 
+    for (var i = 0; i < spellModArray.length; i++) {
+		if (spellModArray[i].indexOf("+") >= -1) {
+			spellModArray[i] = removePlus(spellModArray[i]);
+		};
+        rollChatString = rollChatString.concat(" + ", spellModArray[i] , " ");
+    };   
+	
+	sendChat(characterName,rollChatString, function(ops) {
+		var rollresult = JSON.parse(ops[0].content);
+		var rollResultOutput = buildRollOutput(rollresult);
+		var spellRoll = rollresult.total;
+		var spellChatString = spellName + ": ";
+	
+	 	// spell fails if spellRoll is < (10 + (2*spellLevel))
+	 	// 1 = Lost, failure, and worse!
+	 	// 2-11 = Lost. Failure.
+	 	// 12+ = If spellRoll < spellTarget && spellRoll is >= 12, 
+	 	//   	Failure, but spell is not lost.
 
-	// spell fails if spellRoll is < (10 + (2*spellLevel))
-	// 1 = Lost, failure, and worse!
-	// 2-11 = Lost. Failure.
-	// 12+ = If spellRoll < spellTarget && spellRoll is >= 12, 
-	//   	Failure, but spell is not lost.
-	var spellSuccess;
-	if (spellRoll >= spellTarget) {
-		sendChat(characterName, "" + spellName + ": Success.");
-		spellSuccess = true;
-	};
+		
+	 	if (spellRoll >= spellTarget) {
+	 		spellChatString = spellChatString.concat("Success. ");
+	 	};
+
+	 	if (spellRoll < spellTarget) {
+	 		if (spellRoll === 1) {
+	 			spellChatString = spellChatString.concat("Lost, failure, and worse! ");
+	 		};
+	 		if ((spellRoll >= 2) && (spellRoll <= 11)) {
+	 			spellChatString = spellChatString.concat("Lost. Failure. ");	
+	 		};
+	 		if (spellRoll > 12) {
+	 			spellChatString = spellChatString.concat("Failure, but spell is not lost. ");	
+	 		};
+	 	};
 	
-	if (spellRoll < spellTarget) {
-		if (spellRoll === 1) {
-			sendChat("", "/desc Lost, failure, and worse!");
-			spellSuccess = false;
-		};
-		if ((spellRoll >= 2) && (spellRoll <= 11)) {
-			sendChat("", "/desc Lost. Failure.");	
-			spellSuccess = false;
-		};
-		if (spellRoll > 12) {
-			sendChat("", "/desc Failure, but spell is not lost.");	
-			spellSuccess = false;
-		};
-	};
-	
-	// in case there is a spell duel happening, send the results to that function
-	spellDuel(characterObj, spellName, spellRoll);
-	
-	
+		spellChatString = spellChatString.concat("Results: ", rollResultOutput);
+			 
+		//send rollresult as formatted chat string
+		sendChat(characterName, spellChatString);
+
+		// in case there is a spell duel happening, send the results to that function
+		spellDuel(characterObj, spellName, spellRoll); 
+	});
+
 };
 
 
@@ -1382,7 +1346,7 @@ on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!wizardspell ") !== -1) {
 		//parse the input into two variables, oAttrib and newValue
         var selected = msg.selected;
-		var attributeArray = ["ActionDie", "Level", "INT"]; 
+		var attributeArray = ["ActionDie"]; 
         var param = msg.content.split("!wizardspell ")[1];
 		var spellName = param.split("|")[0];
         var spellLevel = param.split("|")[1];
@@ -1406,6 +1370,69 @@ on("chat:message", function(msg) {
     };
 });
 
+
+function buildRollOutput(obj) {
+
+	var rollFormat = rollFormat || {};
+
+	rollFormat.CSSBGColor = "white"; //Color of background
+	rollFormat.CSSbrdrColor = "black"; //color of border 
+	rollFormat.CSSfontColor = "black"; // color of text
+	rollFormat.CSSfumbleColor = "red"; //color of lowest rolls (1 on 1dX)
+	rollFormat.CSScriticalColor = "green"; //color of highest rolls (X on 1dX)
+
+	rollFormat.modCSS =  "font-size: 1em;"; //Modifer size
+	rollFormat.totCSS =  "font-size: 1.5em;"; //Totals size
+
+	rollFormat.CSS = "background:" + rollFormat.CSSBGColor + "; color:" + rollFormat.CSSfontColor + "; border-radius: 8px; padding:4px; font-size: 1.1em; border-style:solid; border-color:" + rollFormat.CSSbrdrColor + "; border-width:1px;";
+	var notes = "";
+
+	var output = "<TABLE border='0' cellpadding = '4' style='text-align:center;'><TR>";
+    //loop through cleanedMsg to display each die rolled
+    _.each(obj.rolls, function(nMsg){
+        switch(nMsg.type) {
+            case "R":
+                output += "<TD border='1'><div style='" + rollFormat.CSS + "'>";
+                output += nMsg.dice + "d" + nMsg.sides + " = <br />(";
+                var count = 0;
+                _.each(nMsg.results, function(resOut){
+                    count += 1;
+                    if(resOut.d == true){
+                        output += "<i style='text-decoration: line-through'>"
+                    }
+                    if (resOut.v == nMsg.sides) {
+                        output += "<strong style='font-size: 1.5em; color:" + rollFormat.CSScriticalColor + "';>" + resOut.v + "</strong>";
+                    } else if (resOut.v == 1){
+                         output += "<strong style='font-size: 1.5em; color:" + rollFormat.CSSfumbleColor + "';>" + resOut.v + "</strong>";
+                    } else {
+                        output += resOut.v;
+                    }
+                    if(resOut.d == true) {
+                        output += "</i>"
+                    }
+                    if (count !== nMsg.results.length) {
+                        output += ",";
+                    }
+                });
+                output += ") </div></TD>";
+                break;
+            case "M":
+                output += "<TD><div style='" + rollFormat.modCSS + "'>";
+                output += nMsg.expr + "</div></TD>";
+                break;
+            case "C":
+               notes += nMsg.text;
+                break;
+        }
+    });
+        
+    output += "<TD><div style='" + rollFormat.totCSS+ "'> = " + obj.total + notes + "</div> </TD> </TR> </TABLE>"
+
+	return output;
+	
+};
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
 
 
 function debug(msg,v) {
