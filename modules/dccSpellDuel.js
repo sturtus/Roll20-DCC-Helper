@@ -41,28 +41,20 @@ function debugLog(msg) {
 	v.push(["state.dcc.spellDuel.defenderObjArray", state.dcc.spellDuel.defenderObjArray]); 
 	v.push(["state.dcc.spellDuel.defenderSpellArray", state.dcc.spellDuel.defenderSpellArray]); 
 	v.push(["state.dcc.spellDuel.defenderRollArray", state.dcc.spellDuel.defenderRollArray]); 
-	
 	//end debug variables
-
 	debug(msg,v);
 };
 
 function spellDuel(characterObj, spellName, spellRoll) {
 
     debugLog("spellDuel");
-
     var characterName = characterObj.get("name");
-	
 	// check if the attacker spell has already been cast or not.
-
 	if (state.dcc.spellDuel.active === false) {
-		
 		state.dcc.spellDuel.attackerObj = characterObj;
 		state.dcc.spellDuel.attackerSpell = spellName;
 		state.dcc.spellDuel.attackerRoll = spellRoll;
-	
 		debugLog("duel inactive. passing ball to the last spellcaster");
-
 		return;
 	};
 	
@@ -77,55 +69,40 @@ function spellDuel(characterObj, spellName, spellRoll) {
 		};
 	};
 
-
 	if (state.dcc.spellDuel.active === true) {
 		
 		if (characterRole === "attacker") {
-			
 			state.dcc.spellDuel.attackerSpell = spellName;
 			state.dcc.spellDuel.attackerRoll = spellRoll;
-			
 			sendChat(characterName, "The attacker " + characterName + " casts a spell in a spell duel!");
-			
 			debugLog("spell success. caster is attacker. this spell will be the attacker's spell.");
-		
 			return;
 		};	
 		if (characterRole === "defender") {
-			// rs: find which member of the array is the character
 			var j = state.dcc.spellDuel.defenderObjArray.indexOf(characterObj);
-			// rs: fill in data
 			state.dcc.spellDuel.defenderSpellArray[j] = spellName;
 			state.dcc.spellDuel.defenderRollArray[j] = spellRoll;
-	
 			debugLog("duel active. spell success. caster is in defender array. variables set with results.");
-			
 			log(characterObj);
 			log("should be the same as");
 			log(state.dcc.spellDuel.defenderObjArray[j]);
-	
 			return;
 		};
 		
 		if (characterRole = "neither") {
-		
 			debugLog("duel active. spell success. caster is not a defender. spell is just cast. do nothing.");
-		
 			return;
 		};
-	
 	};
 	
 	debugLog("end spellDuel function, nothing happened.");
-	
 	return;
 };
 
 
 function counterSpell(defenderToken, attackerToken) {
-
-	debugLog("counterSpell");
 	
+	debugLog("counterSpell");
 	log(defenderToken);
 	log(attackerToken);
 	
