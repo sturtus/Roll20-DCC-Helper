@@ -70,7 +70,13 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
    	var attackChatString = "/r " + actionDieValue; 
     for (var i = 0; i < deedAttackArray.length; i++) {
 		deedAttackArray[i] = removePlus(deedAttackArray[i]);
-        attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
+        if (deedAttackArray[i] !== "None") {
+            if (deedAttackArray[i].indexOf("-") !== -1) {
+                attackChatString = attackChatString.concat(deedAttackArray[i]);
+            } else {
+                attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
+            };
+        };
     };
 	
 	attackChatString = attackChatString.concat(" +", deedResult);
@@ -93,7 +99,13 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	var dmgChatString = "/r " + deedDamageDie;
     for (var i = 0; i < deedDamageArray.length; i++) {
 		deedDamageArray[i] = removePlus(deedDamageArray[i]);
-        dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+        if (deedDamageArray[i] !== "None") {
+            if (deedDamageArray[i].indexOf("-") !== -1) {
+                dmgChatString = dmgChatString.concat(deedDamageArray[i]);
+            } else {
+                dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+            };
+        };
     };
 
     dmgChatString = dmgChatString.concat(" +", deedResult);
