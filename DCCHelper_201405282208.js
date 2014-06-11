@@ -294,7 +294,7 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
             break;
         };
     };
-    if (modifierName !== undefined) {
+    if (modifierName != undefined) {
         attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
         newModifier = returnAbilityModifier(abilityValue);
         attributeObjArray[0].set("current",newModifier);

@@ -151,6 +151,7 @@ function returnAbilityModifier (abilityScore) {
 };
 
 function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
+
 	var modifierName; 
 	for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
         if (abilityName === state.dcc.abilityScoreArray[i][0]) {
@@ -158,15 +159,25 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
             break;
         };
     };
-    if (modifierName !== undefined) {
-        attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-        newModifier = returnAbilityModifier(abilityValue);
-        attributeObjArray[0].set("current",newModifier);
-		if (newModifier >= 0) newModifier = "+" + newModifier;
-		sendChat("API", "/w gm " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-		sendChat("API", "/w " + characterName + " " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-    };
+    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+    newModifier = returnAbilityModifier(abilityValue).toString();	
+	if (attributeObjArray[0] === undefined) {
+		createObj("attribute", {
+		        name: modifierName,
+		        current: "0",
+		        characterid: characterObj.id
+		    });
+		attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+	};
+
+    attributeObjArray[0].set("current",newModifier);
+	if (newModifier >= 0) newModifier = "+" + newModifier;
+	sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
 };
+
+
+
 
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
@@ -237,6 +248,9 @@ on("chat:message", function(msg) {
     };
 });
 
+
+
+
 on("change:attribute:current", function(attribute) {
     abilityName = attribute.get("name");
     abilityValue = attribute.get("current");
@@ -246,6 +260,8 @@ on("change:attribute:current", function(attribute) {
     
 	updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue);
 });
+
+
 
 on("ready", function() {
     if (!state.dcc) {
@@ -269,7 +285,7 @@ on("ready", function() {
             // saves 
             "REF","FORT","WILL",
             // dice, miscellaneous
-            "ActionDie","DeedDie","ATK","CritDie","FumbleDie","LuckDie","Disapproval","Momentum",
+            "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
             // coins
             "PP","EP","GP","SP","CP"]; 
         tmp = "Created state.dcc.sheetAttributeArray: " + state.dcc.sheetAttributeArray; log(tmp);
@@ -278,6 +294,24 @@ on("ready", function() {
         state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
         tmp = "Created state.dcc.abilityScoreArray: " + state.dcc.abilityScoreArray; log(tmp);
     };
+	
+	on("add:character", function(obj) {
+		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
+			log(state.dcc.sheetAttributeArray[i]);
+			log(getAttrByName(obj.id,state.dcc.sheetAttributeArray[i]));
+		    createObj("attribute", {
+		        name: state.dcc.sheetAttributeArray[i],
+				current: getAttrByName(obj.id,state.dcc.sheetAttributeArray[i]),
+		        characterid: obj.id
+		    });
+		};
+		
+	});
+	
 });
 
-
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!clearstate") !== -1) {
+		state.dcc = [];
+	}
+});
