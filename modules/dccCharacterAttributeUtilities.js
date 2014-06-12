@@ -132,22 +132,9 @@ function validateAttributes(character,currentCharacterAttributes,reportMissing) 
 };
 
 function returnAbilityModifier (abilityScore) {
-    abilityScoreModifier = 0;
-    if (abilityScore < 9) {
-        if (abilityScore > 5) {
-            abilityScoreModifier = -1;
-        } else if (abilityScore > 3) {
-            abilityScoreModifier = -2;
-        } else abilityScoreModifier = -3;
-    } else if (abilityScore > 12) {
-        if (abilityScore > 17) {
-            abilityScoreModifier = 3;
-        } else if (abilityScore > 15) {
-            abilityScoreModifier = 2;
-        } else abilityScoreModifier = 1;
-    }; 
-    tmp = abilityScoreModifier; log(tmp);
-    return abilityScoreModifier;
+	
+	return Math.floor( (0.0009 * Math.pow(abilityScore, 3)  ) + (-0.029 * Math.pow(abilityScore, 2) ) + (0.6 * abilityScore) + 0.41) - 4;
+
 };
 
 function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
@@ -305,7 +292,8 @@ on("ready", function() {
 		        characterid: obj.id
 		    });
 		};
-		
+		var attributeObjArray = getAttributeObjects(obj,state.dcc.sheetAttributeArray,obj.get("name"));
+		log(attributeObjArray);
 	});
 	
 });
