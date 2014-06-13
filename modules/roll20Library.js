@@ -1,3 +1,13 @@
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!clearstate") !== -1) {
+		state.dcc = [];
+	}
+});
+
+
+//----fbase bug-----------------------------------------------------------------------------------------------------------------------------------
+
+/*
 (function() {
     var oldCreateObj = createObj;
     createObj = function() {
@@ -17,7 +27,7 @@ function fixNewObject(obj)
     obj.fbpath = new_p;
     return obj;
 }
-
+*/
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 

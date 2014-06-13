@@ -266,7 +266,7 @@ on("ready", function() {
             // saves 
             "REF","FORT","WILL",
             // dice, miscellaneous
-           // "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
+            "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
             // coins
             "PP","EP","GP","SP","CP"]; 
         tmp = "Created state.dcc.sheetAttributeArray: " + state.dcc.sheetAttributeArray; log(tmp);
@@ -280,18 +280,13 @@ on("ready", function() {
 			
 		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
 			log(state.dcc.sheetAttributeArray[i]);
-			log(getAttrByName(obj.id,state.dcc.sheetAttributeArray[i]));
+			log(getAttrByName(obj.id, state.dcc.sheetAttributeArray[i]));
 		    createObj("attribute", {
 		        name: state.dcc.sheetAttributeArray[i],
-				current: "0",
+				current: getAttrByName(obj.id, state.dcc.sheetAttributeArray[i] ),
 		        characterid: obj.id
 		    });
 		};		
 	});
 });
 
-on("chat:message", function(msg) {
-    if (msg.type === "api" && msg.content.indexOf("!clearstate") !== -1) {
-		state.dcc = [];
-	}
-});

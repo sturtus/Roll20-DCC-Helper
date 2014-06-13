@@ -182,6 +182,29 @@
 	!wizardspell Animal Summoning|1|@{INT}, @{Level}, +1
 
 */
+/*
+(function() {
+    var oldCreateObj = createObj;
+    createObj = function() {
+        var obj = oldCreateObj.apply(this, arguments);
+        if (obj && !obj.fbpath) {
+            obj.fbpath = obj.changed._fbpath.replace(/([^\/]*\/){4}/, "/");
+        }
+        return obj;
+    }
+}())
+
+
+function fixNewObject(obj)
+{
+    var p = obj.changed._fbpath;
+    var new_p = p.replace(/([^\/]*\/){4}/, "/");
+    obj.fbpath = new_p;
+    return obj;
+}
+*/
+
+
 
 function attrib(characterObj,attributeObjArray,newValue) {
     	var attributeName = attributeObjArray[0].get("name");
@@ -269,24 +292,13 @@ function validateAttributes(character,currentCharacterAttributes,reportMissing) 
 };
 
 function returnAbilityModifier (abilityScore) {
-    abilityScoreModifier = 0;
-    if (abilityScore < 9) {
-        if (abilityScore > 5) {
-            abilityScoreModifier = -1;
-        } else if (abilityScore > 3) {
-            abilityScoreModifier = -2;
-        } else abilityScoreModifier = -3;
-    } else if (abilityScore > 12) {
-        if (abilityScore > 17) {
-            abilityScoreModifier = 3;
-        } else if (abilityScore > 15) {
-            abilityScoreModifier = 2;
-        } else abilityScoreModifier = 1;
-    }; 
-    return abilityScoreModifier;
+	
+	return Math.floor( (0.0009 * Math.pow(abilityScore, 3)  ) + (-0.029 * Math.pow(abilityScore, 2) ) + (0.6 * abilityScore) + 0.41) - 4;
+
 };
 
 function updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue) {
+
 	var modifierName; 
 	for(i = 0; i < state.dcc.abilityScoreArray.length; i++) {
         if (abilityName === state.dcc.abilityScoreArray[i][0]) {
@@ -294,15 +306,17 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
             break;
         };
     };
-    if (modifierName !== undefined) {
-        attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-        newModifier = returnAbilityModifier(abilityValue);
-        attributeObjArray[0].set("current",newModifier);
-		if (newModifier >= 0) newModifier = "+" + newModifier;
-		sendChat("API", "/w gm " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-		sendChat("API", "/w " + characterName + " " + characterName + "'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-    };
+	
+    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+    newModifier = returnAbilityModifier(parseInt(abilityValue));	
+
+    attributeObjArray[0].set("current",newModifier.toString());
+	if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
+	sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
 };
+
+
 
 on("chat:message", function(msg) {
     if (msg.type === "api" && msg.content.indexOf("!attrib ") !== -1) {
@@ -369,6 +383,9 @@ on("chat:message", function(msg) {
     };
 });
 
+
+
+
 on("change:attribute:current", function(attribute) {
     abilityName = attribute.get("name");
     abilityValue = attribute.get("current");
@@ -378,6 +395,8 @@ on("change:attribute:current", function(attribute) {
     
 	updateAbilityScoreModifier(characterObj,characterName,abilityName,abilityValue);
 });
+
+
 
 on("ready", function() {
     if (!state.dcc) {
@@ -399,15 +418,27 @@ on("ready", function() {
             // saves 
             "REF","FORT","WILL",
             // dice, miscellaneous
-            "ActionDie","DeedDie","ATK","CritDie","FumbleDie","LuckDie","Disapproval","Momentum",
+            "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
             // coins
             "PP","EP","GP","SP","CP"]; 
 	};
     if (!state.dcc.abilityScoreArray) {
         state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
     };
+	
+	on("add:character", function(obj) {
+			
+		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
+			log(state.dcc.sheetAttributeArray[i]);
+			log(getAttrByName(obj.id, state.dcc.sheetAttributeArray[i]));
+		    createObj("attribute", {
+		        name: state.dcc.sheetAttributeArray[i],
+				current: getAttrByName(obj.id, state.dcc.sheetAttributeArray[i] ),
+		        characterid: obj.id
+		    });
+		};		
+	});
 });
-
 
 function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
 
@@ -530,7 +561,13 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
    	var attackChatString = "/r " + actionDieValue; 
     for (var i = 0; i < deedAttackArray.length; i++) {
 		deedAttackArray[i] = removePlus(deedAttackArray[i]);
-        attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
+        if (deedAttackArray[i] !== "None") {
+            if (deedAttackArray[i].indexOf("-") !== -1) {
+                attackChatString = attackChatString.concat(deedAttackArray[i]);
+            } else {
+                attackChatString = attackChatString.concat(" +", deedAttackArray[i]);
+            };
+        };
     };
 	
 	attackChatString = attackChatString.concat(" +", deedResult);
@@ -553,7 +590,13 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
 	var dmgChatString = "/r " + deedDamageDie;
     for (var i = 0; i < deedDamageArray.length; i++) {
 		deedDamageArray[i] = removePlus(deedDamageArray[i]);
-        dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+        if (deedDamageArray[i] !== "None") {
+            if (deedDamageArray[i].indexOf("-") !== -1) {
+                dmgChatString = dmgChatString.concat(deedDamageArray[i]);
+            } else {
+                dmgChatString = dmgChatString.concat(" +", deedDamageArray[i]);
+            };
+        };
     };
 
     dmgChatString = dmgChatString.concat(" +", deedResult);
@@ -662,28 +705,20 @@ function debugLog(msg) {
 	v.push(["state.dcc.spellDuel.defenderObjArray", state.dcc.spellDuel.defenderObjArray]); 
 	v.push(["state.dcc.spellDuel.defenderSpellArray", state.dcc.spellDuel.defenderSpellArray]); 
 	v.push(["state.dcc.spellDuel.defenderRollArray", state.dcc.spellDuel.defenderRollArray]); 
-	
 	//end debug variables
-
 	debug(msg,v);
 };
 
 function spellDuel(characterObj, spellName, spellRoll) {
 
     debugLog("spellDuel");
-
     var characterName = characterObj.get("name");
-	
 	// check if the attacker spell has already been cast or not.
-
 	if (state.dcc.spellDuel.active === false) {
-		
 		state.dcc.spellDuel.attackerObj = characterObj;
 		state.dcc.spellDuel.attackerSpell = spellName;
 		state.dcc.spellDuel.attackerRoll = spellRoll;
-	
 		debugLog("duel inactive. passing ball to the last spellcaster");
-
 		return;
 	};
 	
@@ -698,55 +733,40 @@ function spellDuel(characterObj, spellName, spellRoll) {
 		};
 	};
 
-
 	if (state.dcc.spellDuel.active === true) {
 		
 		if (characterRole === "attacker") {
-			
 			state.dcc.spellDuel.attackerSpell = spellName;
 			state.dcc.spellDuel.attackerRoll = spellRoll;
-			
 			sendChat(characterName, "The attacker " + characterName + " casts a spell in a spell duel!");
-			
 			debugLog("spell success. caster is attacker. this spell will be the attacker's spell.");
-		
 			return;
 		};	
 		if (characterRole === "defender") {
-			// rs: find which member of the array is the character
 			var j = state.dcc.spellDuel.defenderObjArray.indexOf(characterObj);
-			// rs: fill in data
 			state.dcc.spellDuel.defenderSpellArray[j] = spellName;
 			state.dcc.spellDuel.defenderRollArray[j] = spellRoll;
-	
 			debugLog("duel active. spell success. caster is in defender array. variables set with results.");
-			
 			log(characterObj);
 			log("should be the same as");
 			log(state.dcc.spellDuel.defenderObjArray[j]);
-	
 			return;
 		};
 		
 		if (characterRole = "neither") {
-		
 			debugLog("duel active. spell success. caster is not a defender. spell is just cast. do nothing.");
-		
 			return;
 		};
-	
 	};
 	
 	debugLog("end spellDuel function, nothing happened.");
-	
 	return;
 };
 
 
 function counterSpell(defenderToken, attackerToken) {
-
-	debugLog("counterSpell");
 	
+	debugLog("counterSpell");
 	log(defenderToken);
 	log(attackerToken);
 	
@@ -1370,6 +1390,18 @@ on("chat:message", function(msg) {
     };
 });
 
+
+on("chat:message", function(msg) {
+    if (msg.type === "api" && msg.content.indexOf("!clearstate") !== -1) {
+		state.dcc = [];
+	}
+});
+
+
+//----fbase bug-----------------------------------------------------------------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
 
 function buildRollOutput(obj) {
 
