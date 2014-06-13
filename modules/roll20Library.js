@@ -1,3 +1,26 @@
+(function() {
+    var oldCreateObj = createObj;
+    createObj = function() {
+        var obj = oldCreateObj.apply(this, arguments);
+        if (obj && !obj.fbpath) {
+            obj.fbpath = obj.changed._fbpath.replace(/([^\/]*\/){4}/, "/");
+        }
+        return obj;
+    }
+}())
+
+
+function fixNewObject(obj)
+{
+    var p = obj.changed._fbpath;
+    var new_p = p.replace(/([^\/]*\/){4}/, "/");
+    obj.fbpath = new_p;
+    return obj;
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+
 function buildRollOutput(obj) {
 
 	var rollFormat = rollFormat || {};

@@ -43,6 +43,8 @@
 	modifier value attribute, if necessary, based on the new value. 
 */
 
+
+
 function attrib(characterObj,attributeObjArray,newValue) {
     	var attributeName = attributeObjArray[0].get("name");
 		var attributeValue = attributeObjArray[0].get("current");
@@ -146,23 +148,15 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
             break;
         };
     };
+	
     attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-    newModifier = returnAbilityModifier(abilityValue).toString();	
-	if (attributeObjArray[0] === undefined) {
-		createObj("attribute", {
-		        name: modifierName,
-		        current: "0",
-		        characterid: characterObj.id
-		    });
-		attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-	};
+    newModifier = returnAbilityModifier(parseInt(abilityValue));	
 
-    attributeObjArray[0].set("current",newModifier);
-	if (newModifier >= 0) newModifier = "+" + newModifier;
+    attributeObjArray[0].set("current",newModifier.toString());
+	if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
 	sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
 	sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
 };
-
 
 
 
@@ -272,7 +266,7 @@ on("ready", function() {
             // saves 
             "REF","FORT","WILL",
             // dice, miscellaneous
-            "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
+           // "ActionDie","DeedDie","ATK","CritDie","Disapproval","Momentum",
             // coins
             "PP","EP","GP","SP","CP"]; 
         tmp = "Created state.dcc.sheetAttributeArray: " + state.dcc.sheetAttributeArray; log(tmp);
@@ -283,19 +277,17 @@ on("ready", function() {
     };
 	
 	on("add:character", function(obj) {
+			
 		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
 			log(state.dcc.sheetAttributeArray[i]);
 			log(getAttrByName(obj.id,state.dcc.sheetAttributeArray[i]));
 		    createObj("attribute", {
 		        name: state.dcc.sheetAttributeArray[i],
-				current: getAttrByName(obj.id,state.dcc.sheetAttributeArray[i]),
+				current: "0",
 		        characterid: obj.id
 		    });
-		};
-		var attributeObjArray = getAttributeObjects(obj,state.dcc.sheetAttributeArray,obj.get("name"));
-		log(attributeObjArray);
+		};		
 	});
-	
 });
 
 on("chat:message", function(msg) {
