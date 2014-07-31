@@ -134,7 +134,7 @@
 	A macro or ability would be useful for your characters, as this deed script is not built into the API
 	character sheet. Here are a few example ability/macros:
 
-	@{character_name}|1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
+	!deed @{character_name}|1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
 	!deed @{character_name}|1d6|@{AGI}|0|Normal
 	!deed @{character_name}|1d8|@{STR},+2|@{STR},+2|Smite
 
