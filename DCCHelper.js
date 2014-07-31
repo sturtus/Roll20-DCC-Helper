@@ -42,6 +42,20 @@
 	in the array state.dcc.abilityScoreArray and update the corresponding 
 	modifier value attribute, if necessary, based on the new value. 
 */
+	/*
+	on("add:character", function(obj) {
+		
+		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
+			log(state.dcc.sheetAttributeArray[i]);
+			log(getAttrByName(obj.id, state.dcc.sheetAttributeArray[i]));
+		    createObj("attribute", {
+		        name: state.dcc.sheetAttributeArray[i],
+				current: getAttrByName(obj.id, state.dcc.sheetAttributeArray[i] ),
+		        characterid: obj.id
+		    });
+		};		
+	});
+	*/
 /*
 	========================
 	DCC Cleric Spell Command
@@ -51,7 +65,8 @@
 	Command to cast a cleric spell. If the spell fails, it will increment disapproval up by 1. 
 	If a natural roll is in the disapproval range, it will roll for the disapproval. Command 
 	is required for clerics participating in a spell duel (attackers and defenders).
-
+	
+	character Name: a string to describe the character casting the spell
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being case (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
@@ -63,11 +78,16 @@
 	~~~~~~~~
 	Suppy is a 1st level cleric with the blessing spell, he casts it:
 	
-	!clericspell Blessing|1|@{PER},@{Level}
+	!clericspell Suppy|Blessing|1|@{PER},@{Level}
 	
 	This will roll the spell at the character's current ActionDie attribute, add the 
 	modifiers listed, check for spell success, increment disapproval if necessary, 
 	and roll the disapproval number if a natural roll is in the disapproval range.
+	
+	
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
+	
 	
 	
 */
@@ -77,6 +97,7 @@
 	=======================
 	!deed dmgDie|atk1,atk2,...|dmg1,dmg2,...|(Normal|Mighty|Smite)|(crit)
 	
+	character Name: a string to describe the character doing the deed
 	dmgDie: the die to roll for weapon damage
 	atk and dmg: commas-separated lists of modifiers to apply to attack and damage 
 		rolls, respectively. Can be mix of character attributes (@{STR}, @{LCK}) as well as 
@@ -92,7 +113,7 @@
 	~~~~~~~~~
 	Blarmy is a 2nd level warrior with a longsword +1, his lucky weapon. He performs a Mighty Deed:
 	
-	!deed 1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
+	!deed Blarmy|1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
 	
 	This would perform a Mighty Deed of Arms using the character's attributes: ActionDie,
 	DeedDie, STR, LCK. The +1 is in attack and damage for the +1 weapon. It will roll the 
@@ -100,15 +121,19 @@
 	It pulls the STR and LCK modifiers and applies them appropriately using built in macro
 	processing.
 	
-	!deed 1d6|@{AGI}
+	!deed Blarmy|1d6|@{AGI}
 	
 	This would perform an attack and damage modified by the character's DeedDie attribute
 	using the character's ActionDie as the attack roll. No check for Mighty Deed success 
 	is made. 
 	
-	!deed 1d10|STR|STR|Smite
+	!deed Blarmy|1d10|STR|STR|Smite
 	
 	Performs a Smite for the paladin class in the Crawl! fanzine.
+
+
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
 	
 */
 /*
@@ -168,6 +193,7 @@
 	WORSE language, and spell loss if appropriate. Command is required for wizards
 	participating in a spell duel (attackers and defenders).
 	
+	character Name: a string to describe the character casting the spell
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being cast (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
@@ -179,7 +205,10 @@
 	Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
 	that gives him a +1 to cast the spell
 
-	!wizardspell Animal Summoning|1|@{INT}, @{Level}, +1
+	!wizardspell Jerp|Animal Summoning|1|@{INT}, @{Level}, +1
+
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
 
 */
 /*
@@ -307,13 +336,18 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
         };
     };
 	
-    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-    newModifier = returnAbilityModifier(parseInt(abilityValue));	
+	if (modifierName === undefined) {
+		return;
+	}
+	else {
+	    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+	    newModifier = returnAbilityModifier(parseInt(abilityValue));	
 
-    attributeObjArray[0].set("current",newModifier.toString());
-	if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
-	sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-	sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	    attributeObjArray[0].set("current",newModifier.toString());
+		if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
+		sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+		sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	};
 };
 
 
@@ -425,19 +459,6 @@ on("ready", function() {
     if (!state.dcc.abilityScoreArray) {
         state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
     };
-	
-	on("add:character", function(obj) {
-			
-		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
-			log(state.dcc.sheetAttributeArray[i]);
-			log(getAttrByName(obj.id, state.dcc.sheetAttributeArray[i]));
-		    createObj("attribute", {
-		        name: state.dcc.sheetAttributeArray[i],
-				current: getAttrByName(obj.id, state.dcc.sheetAttributeArray[i] ),
-		        characterid: obj.id
-		    });
-		};		
-	});
 });
 
 function clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray) {
@@ -506,24 +527,22 @@ on("chat:message", function(msg) {
         var selected = msg.selected;
 		var attributeArray = ["ActionDie", "Disapproval", "LCK"];
         var param = msg.content.split("!clericspell ")[1];
-		var spellName = param.split("|")[0];
-        var spellLevel = param.split("|")[1];
-        var spellMod = param.split("|")[2];
+		var charName = param.split("|")[0];
+		var spellName = param.split("|")[1];
+        var spellLevel = param.split("|")[2];
+        var spellMod = param.split("|")[3];
         var spellModArray = spellMod.split(",");
-				
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
-		});
+		var characterObj = findObjs({
+			archived: false,
+			_type: "character",
+			name: charName
+		})[0];
+		
+		if (!characterObj) return;
+		var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+		if (attributeObjArray === false) return;
+		clericSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
+		
 		
     };
 });
@@ -542,19 +561,22 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
     var deedDeedDie = parseInt(deedDeedValue.slice(d));	
 	var deedResult = randomInteger(deedDeedDie);
 
+	//check if deed result is 0 (DeedDie set to anything but d0)
 	// check to see what kind of deed it is, and spit out the right text   
-	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
-		sendChat("Deed Die", deedResult + " ");
-	};	
-	if (deedType === deedTypeArray[1]) {
-    	if (deedResult >= 3) {
-        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
-    	} else {
-        	sendChat("Mighty Deed", deedResult + ": Fails!");
+	if (deedResult > 0 ) {
+		if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
+			sendChat("Deed Die", deedResult + " ");
+		};	
+		if (deedType === deedTypeArray[1]) {
+	    	if (deedResult >= 3) {
+	        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
+	    	} else {
+	        	sendChat("Mighty Deed", deedResult + ": Fails!");
+			};
+	    };	
+		if (deedType === deedTypeArray[2]) {
+			sendChat("Smite", deedResult + " ");
 		};
-    };	
-	if (deedType === deedTypeArray[2]) {
-		sendChat("Smite", deedResult + " ");
 	};
 	
 	//build attack results to send to chat function
@@ -616,27 +638,25 @@ on("chat:message", function(msg) {
 		var deedTypeArray = ["Normal", "Mighty", "Smite"];
 		var attributeArray = ["ActionDie", "DeedDie"];
         var param = msg.content.split("!deed ")[1];
-        var deedDamageDie = param.split("|")[0];
-        var deedAttack = param.split("|")[1];
+        var charName = param.split("|")[0];
+		var deedDamageDie = param.split("|")[1];
+        var deedAttack = param.split("|")[2];
         var deedAttackArray = deedAttack.split(",");
-        var deedDamage = param.split("|")[2];
+        var deedDamage = param.split("|")[3];
         var deedDamageArray = deedDamage.split(",");
-        var deedType = param.split("|")[3];
-		var threat = param.split("|")[4];
-			
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj,attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
-		});
+        var deedType = param.split("|")[4];
+		var threat = param.split("|")[5];
+		var characterObj = findObjs({
+			archived: false,
+			_type: "character",
+			name: charName
+		})[0];
+		
+		if (!characterObj) return;
+		var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+		if (attributeObjArray === false) return;
+		deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
+		
 		
     };
 });
@@ -1368,24 +1388,22 @@ on("chat:message", function(msg) {
         var selected = msg.selected;
 		var attributeArray = ["ActionDie"]; 
         var param = msg.content.split("!wizardspell ")[1];
-		var spellName = param.split("|")[0];
-        var spellLevel = param.split("|")[1];
-        var spellMod = param.split("|")[2];
+		var charName = param.split("|")[0];
+		var spellName = param.split("|")[1];
+        var spellLevel = param.split("|")[2];
+        var spellMod = param.split("|")[3];
         var spellModArray = spellMod.split(",");
-				
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
-		});
+		var characterObj = findObjs({
+			archived: false,
+			_type: "character",
+			name: charName
+		})[0];
+		
+		if (!characterObj) return;
+		var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+		if (attributeObjArray === false) return;
+		wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
+		
 		
     };
 });

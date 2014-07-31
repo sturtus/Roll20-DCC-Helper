@@ -7,7 +7,8 @@
 	Command to cast a cleric spell. If the spell fails, it will increment disapproval up by 1. 
 	If a natural roll is in the disapproval range, it will roll for the disapproval. Command 
 	is required for clerics participating in a spell duel (attackers and defenders).
-
+	
+	character Name: a string to describe the character casting the spell
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being case (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
@@ -19,11 +20,16 @@
 	~~~~~~~~
 	Suppy is a 1st level cleric with the blessing spell, he casts it:
 	
-	!clericspell Blessing|1|@{PER},@{Level}
+	!clericspell Suppy|Blessing|1|@{PER},@{Level}
 	
 	This will roll the spell at the character's current ActionDie attribute, add the 
 	modifiers listed, check for spell success, increment disapproval if necessary, 
 	and roll the disapproval number if a natural roll is in the disapproval range.
+	
+	
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
+	
 	
 	
 */

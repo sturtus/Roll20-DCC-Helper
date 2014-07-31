@@ -4,6 +4,7 @@
 	=======================
 	!deed dmgDie|atk1,atk2,...|dmg1,dmg2,...|(Normal|Mighty|Smite)|(crit)
 	
+	character Name: a string to describe the character doing the deed
 	dmgDie: the die to roll for weapon damage
 	atk and dmg: commas-separated lists of modifiers to apply to attack and damage 
 		rolls, respectively. Can be mix of character attributes (@{STR}, @{LCK}) as well as 
@@ -19,7 +20,7 @@
 	~~~~~~~~~
 	Blarmy is a 2nd level warrior with a longsword +1, his lucky weapon. He performs a Mighty Deed:
 	
-	!deed 1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
+	!deed Blarmy|1d8|@{STR},@{LCK},+1|@{STR},+1|Mighty|18
 	
 	This would perform a Mighty Deed of Arms using the character's attributes: ActionDie,
 	DeedDie, STR, LCK. The +1 is in attack and damage for the +1 weapon. It will roll the 
@@ -27,15 +28,19 @@
 	It pulls the STR and LCK modifiers and applies them appropriately using built in macro
 	processing.
 	
-	!deed 1d6|@{AGI}
+	!deed Blarmy|1d6|@{AGI}
 	
 	This would perform an attack and damage modified by the character's DeedDie attribute
 	using the character's ActionDie as the attack roll. No check for Mighty Deed success 
 	is made. 
 	
-	!deed 1d10|STR|STR|Smite
+	!deed Blarmy|1d10|STR|STR|Smite
 	
 	Performs a Smite for the paladin class in the Crawl! fanzine.
+
+
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
 	
 */
 

@@ -8,6 +8,7 @@
 	WORSE language, and spell loss if appropriate. Command is required for wizards
 	participating in a spell duel (attackers and defenders).
 	
+	character Name: a string to describe the character casting the spell
 	spellName: a string used in chat output as the name of the spell
 	spellLevel: the level of the spell being cast (1, 2, etc.)
 	spellModifiers: commas-separated lists of modifiers to apply to the spell check 
@@ -19,7 +20,10 @@
 	Jerp is a 2nd level wizard casting Animal Summoning, but has a mercurial magic
 	that gives him a +1 to cast the spell
 
-	!wizardspell Animal Summoning|1|@{INT}, @{Level}, +1
+	!wizardspell Jerp|Animal Summoning|1|@{INT}, @{Level}, +1
+
+	YOU CAN USE THE API CHARACTER SHEET FOR DCC AS WELL. THIS FUNCTION IS BUILT INTO IT:
+	https://github.com/Roll20/roll20-character-sheets/blob/master/DCC/DCC-API.html
 
 */
 
