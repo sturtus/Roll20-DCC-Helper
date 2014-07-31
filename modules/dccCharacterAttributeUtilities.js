@@ -149,13 +149,18 @@ function updateAbilityScoreModifier(characterObj,characterName,abilityName,abili
         };
     };
 	
-    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
-    newModifier = returnAbilityModifier(parseInt(abilityValue));	
+	if (modifierName === undefined) {
+		return;
+	}
+	else {
+	    attributeObjArray = getAttributeObjects(characterObj,modifierName,characterName);
+	    newModifier = returnAbilityModifier(parseInt(abilityValue));	
 
-    attributeObjArray[0].set("current",newModifier.toString());
-	if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
-	sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
-	sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	    attributeObjArray[0].set("current",newModifier.toString());
+		if (parseInt(newModifier) >= 0) newModifier = "+" + newModifier;
+		sendChat("API", "/w gm " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+		sendChat("API", "/w " + characterName + " " + characterName + "\'s " + modifierName + " mod is now <strong>" + newModifier + "</strong>");
+	};
 };
 
 
@@ -275,9 +280,9 @@ on("ready", function() {
         state.dcc.abilityScoreArray = [["Strength","STR"],["Agility","AGI"],["Stamina","STA"],["Personality","PER"],["Intelligence","INT"],["Luck","LCK"]]; 
         tmp = "Created state.dcc.abilityScoreArray: " + state.dcc.abilityScoreArray; log(tmp);
     };
-	
+	/*
 	on("add:character", function(obj) {
-			
+		
 		for(i = 0; i < state.dcc.sheetAttributeArray.length; i++) {
 			log(state.dcc.sheetAttributeArray[i]);
 			log(getAttrByName(obj.id, state.dcc.sheetAttributeArray[i]));
@@ -288,5 +293,6 @@ on("ready", function() {
 		    });
 		};		
 	});
+	*/
 });
 

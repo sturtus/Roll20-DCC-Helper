@@ -86,24 +86,22 @@ on("chat:message", function(msg) {
         var selected = msg.selected;
 		var attributeArray = ["ActionDie"]; 
         var param = msg.content.split("!wizardspell ")[1];
-		var spellName = param.split("|")[0];
-        var spellLevel = param.split("|")[1];
-        var spellMod = param.split("|")[2];
+		var charName = param.split("|")[0];
+		var spellName = param.split("|")[1];
+        var spellLevel = param.split("|")[2];
+        var spellMod = param.split("|")[3];
         var spellModArray = spellMod.split(",");
-				
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
-		});
+		var characterObj = findObjs({
+			archived: false,
+			_type: "character",
+			name: charName
+		})[0];
+		
+		if (!characterObj) return;
+		var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+		if (attributeObjArray === false) return;
+		wizardSpell(characterObj, attributeObjArray, spellName, spellLevel, spellModArray);
+		
 		
     };
 });

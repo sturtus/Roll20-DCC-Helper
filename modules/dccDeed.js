@@ -51,19 +51,22 @@ function deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, d
     var deedDeedDie = parseInt(deedDeedValue.slice(d));	
 	var deedResult = randomInteger(deedDeedDie);
 
+	//check if deed result is 0 (DeedDie set to anything but d0)
 	// check to see what kind of deed it is, and spit out the right text   
-	if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
-		sendChat("Deed Die", deedResult + " ");
-	};	
-	if (deedType === deedTypeArray[1]) {
-    	if (deedResult >= 3) {
-        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
-    	} else {
-        	sendChat("Mighty Deed", deedResult + ": Fails!");
+	if (deedResult > 0 ) {
+		if ((deedType === deedTypeArray[0]) || (deedType === undefined)) {
+			sendChat("Deed Die", deedResult + " ");
+		};	
+		if (deedType === deedTypeArray[1]) {
+	    	if (deedResult >= 3) {
+	        	sendChat("Mighty Deed", deedResult + ": Succeeds if hits!");
+	    	} else {
+	        	sendChat("Mighty Deed", deedResult + ": Fails!");
+			};
+	    };	
+		if (deedType === deedTypeArray[2]) {
+			sendChat("Smite", deedResult + " ");
 		};
-    };	
-	if (deedType === deedTypeArray[2]) {
-		sendChat("Smite", deedResult + " ");
 	};
 	
 	//build attack results to send to chat function
@@ -125,27 +128,25 @@ on("chat:message", function(msg) {
 		var deedTypeArray = ["Normal", "Mighty", "Smite"];
 		var attributeArray = ["ActionDie", "DeedDie"];
         var param = msg.content.split("!deed ")[1];
-        var deedDamageDie = param.split("|")[0];
-        var deedAttack = param.split("|")[1];
+        var charName = param.split("|")[0];
+		var deedDamageDie = param.split("|")[1];
+        var deedAttack = param.split("|")[2];
         var deedAttackArray = deedAttack.split(",");
-        var deedDamage = param.split("|")[2];
+        var deedDamage = param.split("|")[3];
         var deedDamageArray = deedDamage.split(",");
-        var deedType = param.split("|")[3];
-		var threat = param.split("|")[4];
-			
-		if(!selected) {
-			sendChat("API", "/w " + msg.who + " Select token and try again.");
-			return; //quit if nothing selected
-		}; 
-	
-		//loop through selected tokens
-		_.each(selected, function(obj) {
-			var characterObj = getCharacterObj(obj,msg.who);
-			if (characterObj === false) return;
-			var attributeObjArray = getAttributeObjects(characterObj,attributeArray,msg.who);
-			if (attributeObjArray === false) return;
-			deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
-		});
+        var deedType = param.split("|")[4];
+		var threat = param.split("|")[5];
+		var characterObj = findObjs({
+			archived: false,
+			_type: "character",
+			name: charName
+		})[0];
+		
+		if (!characterObj) return;
+		var attributeObjArray = getAttributeObjects(characterObj, attributeArray,msg.who);
+		if (attributeObjArray === false) return;
+		deed(characterObj, attributeObjArray, deedDamageDie, deedAttackArray, deedDamageArray, deedTypeArray, deedType, threat);
+		
 		
     };
 });
